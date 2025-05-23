@@ -1,6 +1,12 @@
 """
-Autonomous MCP Agent - Task 1.2: Basic Execution Planner
+Autonomous MCP Agent - Core Components
 """
+
+from .discovery import (
+    ToolCapability,
+    DiscoveredTool,
+    ToolDiscovery
+)
 
 from .planner import (
     ToolCall,
@@ -8,8 +14,27 @@ from .planner import (
     BasicExecutionPlanner
 )
 
+from .executor import (
+    ChainExecutor,
+    ExecutionStatus,
+    ExecutionResult,
+    ExecutionState
+)
+
 __all__ = [
+    # Discovery
+    'ToolCapability',
+    'DiscoveredTool',
+    'ToolDiscovery',
+    
+    # Planner
     'ToolCall',
     'ExecutionPlan',
-    'BasicExecutionPlanner'
+    'BasicExecutionPlanner',
+    
+    # Executor
+    'ChainExecutor',
+    'ExecutionStatus',
+    'ExecutionResult',
+    'ExecutionState'
 ]
