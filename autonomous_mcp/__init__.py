@@ -1,16 +1,15 @@
-from .agent import AutonomousMCPAgent
-from .analyzer import MessageAnalyzer
-from .planner import ExecutionPlanner
-from .executor import ChainExecutor
-from .recovery import ErrorRecoverySystem
-from .learning import LearningSystem
+"""
+Autonomous MCP Agent - Task 1.2: Basic Execution Planner
+"""
 
-__version__ = '0.1.0'
+from .planner import (
+    ToolCall,
+    ExecutionPlan,
+    BasicExecutionPlanner
+)
+
 __all__ = [
-    'AutonomousMCPAgent',
-    'MessageAnalyzer',
-    'ExecutionPlanner',
-    'ChainExecutor',
-    'ErrorRecoverySystem',
-    'LearningSystem'
+    'ToolCall',
+    'ExecutionPlan',
+    'BasicExecutionPlanner'
 ]
