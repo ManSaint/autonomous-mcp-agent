@@ -1,0 +1,24 @@
+# Autonomous MCP Agent Requirements
+
+# Core dependencies
+dataclasses>=0.6  # For Python < 3.7 compatibility
+typing-extensions>=4.0.0  # Extended typing support
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+
+# Development
+black>=23.0.0  # Code formatting
+flake8>=6.0.0  # Linting
+mypy>=1.0.0  # Type checking
+
+# Documentation
+sphinx>=6.0.0  # Documentation generation
+sphinx-rtd-theme>=1.2.0  # ReadTheDocs theme
+
+# Future dependencies (for upcoming phases)
+# aiohttp>=3.8.0  # Async HTTP client
+# httpx>=0.24.0  # Modern HTTP client
+# pydantic>=2.0.0  # Data validation
