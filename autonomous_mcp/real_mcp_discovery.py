@@ -204,6 +204,12 @@ class RealMCPDiscovery:
             self.logger.error(f"Error during tool discovery: {e}")
             return {}
     
+    def discover_available_tools(self, force_refresh: bool = False) -> Dict[str, MCPTool]:
+        """
+        Alias for discover_all_tools to maintain compatibility
+        """
+        return self.discover_all_tools(force_refresh)
+    
     def _process_discovered_tool(self, tool_name: str) -> None:
         """Process a single discovered tool"""
         try:
@@ -304,6 +310,11 @@ class RealMCPDiscovery:
             complexity += 0.5
             
         return min(complexity, 5.0)
+    
+    @property
+    def discovered_tools(self) -> Dict[str, MCPTool]:
+        """Property to access discovered tools (compatibility for autonomous tools)"""
+        return self.tools
     
     def _is_cache_valid(self) -> bool:
         """Check if discovery cache is still valid"""
