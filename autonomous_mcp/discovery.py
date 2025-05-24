@@ -114,6 +114,19 @@ class ToolDiscovery:
         """Compatibility property for accessing discovered tools"""
         return self.discovered_tools
         
+    def discover_tools(self, available_tools: List[Dict[str, Any]], force_refresh: bool = False) -> Dict[str, DiscoveredTool]:
+        """
+        Legacy compatibility method - forwards to discover_all_tools
+        
+        Args:
+            available_tools: List of available tool configurations
+            force_refresh: Force refresh even if cache is valid
+            
+        Returns:
+            Dictionary of tool name to DiscoveredTool objects
+        """
+        return self.discover_all_tools(available_tools, force_refresh)
+
     def discover_all_tools(self, available_tools: List[Dict[str, Any]], force_refresh: bool = False) -> Dict[str, DiscoveredTool]:
         """
         Discover all available MCP tools from the provided list.

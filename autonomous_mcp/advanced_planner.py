@@ -684,6 +684,75 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
         
         return adapted_plan
     
+    async def create_execution_plan(self, intent: str, available_tools: List[Any], context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        Create execution plan compatible with autonomous_tools.py interface
+        
+        Args:
+            intent: User's intended action
+            available_tools: List of available tools (not used directly, discovery system handles this)
+            context: Additional context for planning
+            
+        Returns:
+            Dictionary representation of execution plan
+        """
+        try:
+            # Use the advanced planning capabilities
+            enhanced_plan = await self.create_advanced_plan(intent, context)
+            
+            # Convert EnhancedExecutionPlan to dictionary format expected by autonomous_tools
+            execution_plan = {
+                'plan_id': enhanced_plan.plan_id,
+                'intent': enhanced_plan.intent,
+                'steps': [],
+                'estimated_duration': enhanced_plan.estimated_duration,
+                'confidence_score': enhanced_plan.confidence_score,
+                'complexity_score': enhanced_plan.complexity_score,
+                'planning_method': enhanced_plan.planning_method,
+                'metadata': enhanced_plan.metadata
+            }
+            
+            # Convert tool calls to steps format
+            for tool_call in enhanced_plan.tools:
+                step = {
+                    'description': f"Execute {tool_call.tool_name}",
+                    'tool': tool_call.tool_name,
+                    'parameters': tool_call.parameters,
+                    'dependencies': [f"step_{dep+1}" for dep in tool_call.dependencies],
+                    'estimated_duration': tool_call.timeout,
+                    'confidence': enhanced_plan.confidence_score,
+                    'order': tool_call.order
+                }
+                execution_plan['steps'].append(step)
+            
+            return execution_plan
+            
+        except Exception as e:
+            logger.error(f"create_execution_plan failed: {e}")
+            # Fallback to basic plan
+            basic_plan = self.create_plan(intent, context)
+            return {
+                'plan_id': basic_plan.plan_id,
+                'intent': basic_plan.intent,
+                'steps': [
+                    {
+                        'description': f"Execute {tool.tool_name}",
+                        'tool': tool.tool_name,
+                        'parameters': tool.parameters,
+                        'dependencies': [f"step_{dep+1}" for dep in tool.dependencies],
+                        'estimated_duration': tool.timeout,
+                        'confidence': basic_plan.confidence_score,
+                        'order': tool.order
+                    }
+                    for tool in basic_plan.tools
+                ],
+                'estimated_duration': basic_plan.estimated_duration,
+                'confidence_score': basic_plan.confidence_score,
+                'complexity_score': 0.0,
+                'planning_method': 'basic_fallback',
+                'metadata': basic_plan.metadata
+            }
+
     def _extract_capabilities_from_intent(self, intent: str) -> List[str]:
         """Extract required capabilities from user intent"""
         capabilities = []

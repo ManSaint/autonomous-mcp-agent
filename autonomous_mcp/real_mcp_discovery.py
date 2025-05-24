@@ -394,6 +394,27 @@ class RealMCPDiscovery:
             )[:5]
         }
     
+    def get_tools_for_intent(self, intent: str) -> List[MCPTool]:
+        """
+        Get tools that match a specific intent (compatibility method for planner)
+        
+        Args:
+            intent: User's intended action
+            
+        Returns:
+            List of MCPTool objects that match the intent
+        """
+        return self.get_recommended_tools(intent, limit=10)
+    
+    async def get_all_tools(self) -> List[MCPTool]:
+        """
+        Get all discovered tools as a list (compatibility method for smart_selector)
+        
+        Returns:
+            List of all MCPTool objects
+        """
+        return list(self.tools.values())
+
     def export_tool_catalog(self) -> Dict[str, Any]:
         """Export complete tool catalog for external use"""
         return {

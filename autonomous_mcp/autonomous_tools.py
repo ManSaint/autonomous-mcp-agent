@@ -73,18 +73,19 @@ class AdvancedAutonomousTools:
     
     def __init__(self):
         """Initialize advanced autonomous tools"""
-        # Core framework components
+        # Real MCP integration first
+        self.real_discovery = RealMCPDiscovery()
+        self.mcp_executor = RealMCPChainExecutor()
+        
+        # Core framework components using real discovery
         self.discovery = ToolDiscovery()
         self.executor = ChainExecutor()
-        self.planner = AdvancedExecutionPlanner(self.discovery)
-        self.smart_selector = SmartToolSelector(self.discovery)
+        # Use real discovery for planner to have access to actual tools
+        self.planner = AdvancedExecutionPlanner(self.real_discovery)
+        self.smart_selector = SmartToolSelector(self.real_discovery)
         self.error_recovery = ErrorRecoverySystem()
         self.monitoring = MonitoringSystem()
         self.preferences = UserPreferenceEngine()
-        
-        # Real MCP integration
-        self.real_discovery = RealMCPDiscovery()
-        self.mcp_executor = RealMCPChainExecutor()
         
         # Advanced features state
         self.workflow_cache: Dict[str, IntelligentWorkflow] = {}
@@ -764,23 +765,23 @@ class AdvancedAutonomousTools:
     async def _get_comprehensive_tool_list(self) -> List[Dict[str, Any]]:
         """Get comprehensive list of available tools"""
         try:
-            # Use the discovered tools from the discovery system
-            discovered_tools_dict = self.discovery.discovered_tools
+            # Use the real discovery system to get actual MCP tools
+            real_tools = await self.real_discovery.get_all_tools()
             
-            # Convert DiscoveredTool objects to dictionary format
+            # Convert MCPTool objects to dictionary format
             tool_list = []
-            for name, tool in discovered_tools_dict.items():
+            for tool in real_tools:
                 tool_dict = {
-                    'name': name,
+                    'name': tool.name,
                     'description': tool.description,
                     'server': tool.server,
-                    'parameters': tool.parameters,
-                    'categories': [cap.category for cap in tool.capabilities],
-                    'capabilities': [cap.subcategory for cap in tool.capabilities],
+                    'parameters': tool.parameters if hasattr(tool, 'parameters') else {},
+                    'categories': [tool.category.value],
+                    'capabilities': [tool.category.value],
                     'usage_count': tool.usage_count,
                     'success_rate': tool.success_rate,
-                    'average_execution_time': tool.average_execution_time,
-                    'recommendation_score': tool.success_rate * 0.8 + (1.0 / (tool.average_execution_time + 1)) * 0.2
+                    'average_execution_time': tool.avg_execution_time,
+                    'recommendation_score': tool.reliability_score
                 }
                 tool_list.append(tool_dict)
             
