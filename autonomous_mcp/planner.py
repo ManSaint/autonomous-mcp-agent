@@ -164,19 +164,23 @@ class BasicExecutionPlanner:
         
         # Create tool calls from discovered tools
         tool_calls = []
-        for i, (tool_id, confidence) in enumerate(tools_info):
-            tool_info = self.discovery.tools.get(tool_id, {})
+        for i, discovered_tool in enumerate(tools_info):
+            # discovered_tool is a DiscoveredTool object
+            tool_id = discovered_tool.name
+            
+            # Calculate confidence from the tool's capabilities
+            confidence = max(cap.confidence for cap in discovered_tool.capabilities) if discovered_tool.capabilities else 0.5
             
             # Create basic parameters based on context
-            parameters = self._generate_parameters(tool_info, intent, context)
+            parameters = self._generate_parameters(discovered_tool.__dict__, intent, context)
             
             tool_call = ToolCall(
-                tool_name=tool_info.get('name', tool_id),
+                tool_name=discovered_tool.name,
                 tool_id=tool_id,
                 parameters=parameters,
                 order=i,
                 dependencies=self._determine_dependencies(i, tool_calls),
-                expected_output_type=self._infer_output_type(tool_info)
+                expected_output_type=self._infer_output_type(discovered_tool.__dict__)
             )
             
             tool_calls.append(tool_call)
@@ -189,7 +193,7 @@ class BasicExecutionPlanner:
             plan_id=plan_id,
             intent=intent,
             tools=tool_calls,
-            confidence_score=self._calculate_plan_confidence(tools_info),
+            confidence_score=self._calculate_plan_confidence([(tool.name, max(cap.confidence for cap in tool.capabilities) if tool.capabilities else 0.5) for tool in tools_info]),
             estimated_duration=self._estimate_duration(tool_calls),
             metadata={'context': context or {}}
         )
