@@ -81,7 +81,7 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
         super().__init__(discovery_system)
         self.sequential_thinking_tool = sequential_thinking_tool
         self.smart_selector = smart_selector or (SmartToolSelector(discovery_system) if discovery_system else None)
-        self.complexity_threshold = 0.3  # Above this, use sequential thinking
+        self.complexity_threshold = 0.15  # Above this, use sequential thinking
         self.reasoning_timeout = 30.0  # Max time for reasoning process
         
         # Complexity indicators
@@ -187,6 +187,27 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
             'reasoning': f"Complexity analysis: {keyword_matches} complex keywords, {pattern_matches} patterns, {len(words)} words, {len(entities)} entities",
             'requires_advanced_planning': complexity_score >= self.complexity_threshold
         }
+    
+    def _calculate_complexity_score(self, intent: str) -> float:
+        """
+        Calculate a simple complexity score for the intent (synchronous version)
+        
+        Args:
+            intent: User's intended action
+            
+        Returns:
+            Float complexity score between 0.0 and 1.0
+        """
+        # Simple synchronous calculation based on keywords and length
+        intent_lower = intent.lower()
+        keyword_matches = sum(1 for kw in self.complex_keywords if kw in intent_lower)
+        keyword_score = keyword_matches / len(self.complex_keywords)
+        
+        words = intent.split()
+        length_score = min(len(words) / 20.0, 1.0)
+        
+        # Weighted average
+        return keyword_score * 0.6 + length_score * 0.4
     
     async def create_reasoning_based_plan(self, intent: str, context: Dict[str, Any], 
                                         complexity_analysis: Dict[str, Any]) -> EnhancedExecutionPlan:
