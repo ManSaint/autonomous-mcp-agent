@@ -2,118 +2,32 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-139%2F139_Passing-brightgreen.svg)](tests/)
-[![Build](https://img.shields.io/badge/Build-Production_Ready-success.svg)](docs/)
+[![Tests](https://img.shields.io/badge/Tests-213%2B_Passing-brightgreen.svg)](tests/)
+[![Status](https://img.shields.io/badge/Status-Production_Ready-success.svg)]()
 
-An intelligent, autonomous agent that discovers, plans, and executes MCP (Model Context Protocol) tool chains to accomplish complex user tasks with human-like reasoning and machine learning capabilities.
+**An intelligent autonomous agent that automatically discovers, plans, and executes complex tasks using Model Context Protocol (MCP) tools.**
 
-## ✨ Features
+The agent intelligently selects the best tools and workflows for any task, learns from usage patterns, and provides autonomous task execution with human-like reasoning capabilities.
 
-### 🧠 **Intelligent Planning**
-- **Sequential Thinking**: Advanced reasoning for complex task decomposition
-- **Multi-factor Complexity Analysis**: Keyword, pattern, and context-based intelligence
-- **Dynamic Plan Adaptation**: Real-time plan optimization based on execution results
-- **Graceful Fallback**: Automatic fallback to basic planning when needed
+---
 
-### 🤖 **Machine Learning Tool Selection**
-- **5 Selection Strategies**: Performance, Capability, Hybrid, ML, and Context-aware
-- **Vectorized Intent Matching**: Cosine similarity-based tool recommendations
-- **Learning from Usage**: Adaptive improvement from tool performance patterns
-- **Context-Aware Selection**: Tool selection based on previous execution context
+## ✨ Key Features
 
-### 👤 **Personalized User Experience**
-- **Multi-User Support**: Individual preference profiles and learning
-- **7 Preference Types**: Tool usage, domain interests, execution style, and more
-- **Adaptive Learning**: Real-time learning from user satisfaction and feedback
-- **Privacy Controls**: User consent management and privacy-aware storage
+🧠 **Intelligent Task Execution** - Automatically breaks down complex tasks and creates optimal execution plans  
+🔍 **Smart Tool Discovery** - Finds and categorizes the best tools for any task from available MCP servers  
+⚡ **Autonomous Workflows** - Creates and executes multi-step workflows with dependency management  
+📊 **Performance Learning** - Learns from execution patterns to improve future task performance  
+🛡️ **Error Recovery** - Built-in error handling and automatic retry mechanisms  
+📈 **Real-time Monitoring** - Tracks performance metrics and provides optimization insights  
 
-### 🛠️ **Production-Grade Foundation**
-- **Bulletproof Core**: 100% test coverage with comprehensive error handling
-- **Async Execution**: High-performance parallel and sequential execution modes
-- **State Tracking**: Complete execution monitoring and performance analytics
-- **Enterprise Ready**: Robust dependency resolution and timeout handling
-
-## 🚀 **How to Use**
-
-### **📖 Complete Instructions**
-- **🏃‍♂️ [Quick Start Guide](QUICK_START.md)** - Get running in 5 minutes
-- **📚 [Complete User Guide](USER_GUIDE.md)** - Comprehensive instructions and examples
-- **🔧 [Troubleshooting](USER_GUIDE.md#troubleshooting)** - Common issues and solutions
-
-### **⚡ Quick Setup**
-```bash
-# 1. Clone repository
-git clone https://github.com/ManSaint/autonomous-mcp-agent.git
-cd autonomous-mcp-agent
-
-# 2. Install dependencies  
-pip install -r requirements.txt && pip install -r requirements_mcp.txt
-
-# 3. Configure Claude Desktop
-python deploy/startup_script.py
-
-# 4. Restart Claude Desktop - Ready to use!
-```
-
-### **🎯 Available Tools**
-**7 Autonomous Agent Tools**:
-- `execute_autonomous_task` - Complex task automation with AI planning
-- `discover_available_tools` - Intelligent tool discovery and categorization  
-- `create_intelligent_workflow` - Advanced workflow generation
-- `analyze_task_complexity` - Task analysis and recommendations
-- `get_personalized_recommendations` - ML-powered suggestions
-- `monitor_agent_performance` - Real-time performance tracking
-- `configure_agent_preferences` - User personalization settings
-
-**Plus 9+ Real MCP Tools** automatically discovered and integrated!
-
-### **💡 Example Usage**
-```
-"Execute autonomous task: Research Python best practices and create a summary"
-"Create workflow for: Search GitHub repos, analyze code, generate report" 
-"Discover available tools for web development"
-"Monitor agent performance for the last 24 hours"
-```
-
-### **⛓️ Advanced: MCP Chain Workflows**
-```json
-{
-  "mcpPath": [
-    {"toolName": "brave_web_search", "toolArgs": "{\"query\": \"AI research 2024\"}"},
-    {"toolName": "analyze_task_complexity", "toolArgs": "{\"task_description\": \"CHAIN_RESULT\", \"context\": {}}", "inputPath": "$.results[0].title"}
-  ]
-}
-```
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    AUTONOMOUS MCP AGENT                     │
-├─────────────────────────────────────────────────────────────┤
-│  PHASE 2: INTELLIGENCE LAYER (100% Complete)               │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌───────────────┐  │
-│  │ Advanced        │ │ Smart Tool      │ │ User          │  │
-│  │ Planner         │ │ Selector        │ │ Preferences   │  │
-│  │ • Sequential    │ │ • ML Algorithms │ │ • Multi-User  │  │
-│  │   Thinking      │ │ • 5 Strategies  │ │ • Learning    │  │
-│  │ • Complexity    │ │ • Context-Aware │ │ • Privacy     │  │
-│  │   Analysis      │ │ • Adaptive      │ │ • Feedback    │  │
-│  └─────────────────┘ └─────────────────┘ └───────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  PHASE 1: CORE FOUNDATION (100% Complete)                  │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌───────────────┐  │
-│  │ Tool            │ │ Execution       │ │ Chain         │  │
-│  │ Discovery       │ │ Planner         │ │ Executor      │  │
-│  │ • Auto-Discovery│ │ • Dependencies  │ │ • Async Exec  │  │
-│  │ • Categorization│ │ • Optimization  │ │ • Retry Logic │  │
-│  │ • Performance   │ │ • Validation    │ │ • Monitoring  │  │
-│  │ • Caching       │ │ • Export/Import │ │ • Chaining    │  │
-│  └─────────────────┘ └─────────────────┘ └───────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+---
 
 ## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.8+
+- Claude Desktop application
+- Internet connection
 
 ### Installation
 
@@ -124,153 +38,235 @@ cd autonomous-mcp-agent
 
 # Install dependencies
 pip install -r requirements.txt
+pip install -r requirements_mcp.txt
 
-# Install in development mode
-pip install -e .
+# Configure Claude Desktop
+python deploy/startup_script.py
+
+# Restart Claude Desktop
 ```
 
-### Basic Usage
+### Verify Installation
+After restarting Claude Desktop, you should see **7 new autonomous agent tools** available.
 
-```python
-from autonomous_mcp.discovery import ToolDiscovery
-from autonomous_mcp.advanced_planner import AdvancedExecutionPlanner
-from autonomous_mcp.executor import ChainExecutor
+---
 
-# Initialize components
-discovery = ToolDiscovery()
-planner = AdvancedExecutionPlanner(discovery_system=discovery)
-executor = ChainExecutor()
+## 🛠️ Available Tools
 
-# Create and execute an intelligent plan
-plan = await planner.create_advanced_plan(
-    "Research AI developments and create a comprehensive analysis report"
-)
+### Core Autonomous Tools
 
-# Execute the plan
-result = await executor.execute_plan(plan)
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| **execute_autonomous_task** | Executes complex tasks with intelligent planning | "Research AI trends and create a summary report" |
+| **discover_available_tools** | Finds and categorizes available MCP tools | "Find tools for web development tasks" |
+| **create_intelligent_workflow** | Generates optimized multi-step workflows | "Create workflow for data analysis and visualization" |
+| **analyze_task_complexity** | Analyzes task difficulty and provides recommendations | "Analyze complexity of building a web scraper" |
+| **get_personalized_recommendations** | Provides ML-powered tool and approach suggestions | "Recommend tools for automating social media posts" |
+| **monitor_agent_performance** | Tracks and reports performance metrics | "Show performance metrics for the last 24 hours" |
+| **configure_agent_preferences** | Customizes agent behavior and learning | "Configure preferences for thorough analysis" |
+
+### Real MCP Tool Integration
+The agent automatically discovers and integrates with available MCP servers, including:
+- **Web Search & Research** - Brave Search, web scraping tools
+- **Development Tools** - GitHub operations, code analysis
+- **Task Management** - Project planning, task tracking
+- **Data Processing** - File operations, data transformation
+- **Documentation** - API docs, knowledge management
+- **And many more...**
+
+---
+
+## 💡 Usage Examples
+
+### Simple Task Execution
+```
+"Execute autonomous task: Research the latest Python frameworks and create a comparison table"
+```
+**What happens:**
+1. Agent analyzes task complexity
+2. Discovers relevant research and analysis tools
+3. Creates optimized workflow: search → analyze → format → present
+4. Executes workflow with monitoring
+5. Provides comprehensive results with performance metrics
+
+### Workflow Creation
+```
+"Create intelligent workflow for: Monitor GitHub repos, analyze issues, create weekly report"
+```
+**What happens:**
+1. Agent designs multi-step workflow
+2. Identifies required tools and dependencies
+3. Estimates execution time and success probability
+4. Provides detailed workflow plan with optimization suggestions
+
+### Tool Discovery
+```
+"Discover available tools for machine learning development"
+```
+**What happens:**
+1. Agent scans all connected MCP servers
+2. Categorizes tools by capability and use case
+3. Provides recommendations based on task requirements
+4. Shows performance metrics for each tool
+
+---
+
+## 🏗️ How It Works
+
+### Intelligent Planning Process
+1. **Task Analysis** - Breaks down complex requests into manageable components
+2. **Tool Discovery** - Automatically finds the best available tools for each component
+3. **Workflow Generation** - Creates optimized execution plans with dependency management
+4. **Execution & Monitoring** - Runs workflows with real-time performance tracking
+5. **Learning & Optimization** - Learns from results to improve future performance
+
+### Autonomous Decision Making
+The agent uses advanced algorithms to:
+- **Select optimal tools** based on performance history and task requirements
+- **Create efficient workflows** with parallel execution when possible
+- **Handle errors gracefully** with automatic retry and fallback mechanisms
+- **Learn from usage patterns** to improve recommendations over time
+- **Adapt to user preferences** while maintaining optimal performance
+
+---
+
+## 📊 Advanced Features
+
+### Performance Monitoring
+- Real-time execution metrics
+- Success rate tracking by task type
+- Tool performance analytics
+- Optimization recommendations
+
+### Learning Capabilities
+- Adaptive tool selection based on success patterns
+- User preference learning from feedback
+- Workflow optimization from execution history
+- Context-aware recommendations
+
+### Error Recovery
+- Automatic retry mechanisms with exponential backoff
+- Intelligent fallback tool selection
+- Graceful degradation for partial failures
+- Comprehensive error reporting and analysis
+
+---
+
+## 🔧 Configuration
+
+### Claude Desktop Setup
+The agent automatically configures Claude Desktop during installation. For manual setup:
+
+1. Locate your Claude Desktop config file:
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Mac**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+2. Add the MCP server configuration:
+```json
+{
+  "mcpServers": {
+    "autonomous-mcp-agent": {
+      "command": "python",
+      "args": ["/path/to/autonomous-mcp-agent/mcp_server.py"],
+      "env": {}
+    }
+  }
+}
 ```
 
-### Advanced Features
+3. Restart Claude Desktop
 
-```python
-from autonomous_mcp.smart_selector import SmartToolSelector, SelectionStrategy
-from autonomous_mcp.user_preferences import UserPreferenceEngine
+### Environment Variables
+No additional environment variables are required. The agent automatically discovers and connects to available MCP servers.
 
-# Smart tool selection with machine learning
-smart_selector = SmartToolSelector(discovery)
-recommendations = await smart_selector.select_best_tools(
-    selection_context,
-    strategy=SelectionStrategy.ML_BASED,
-    max_results=5
-)
-
-# User personalization
-user_prefs = UserPreferenceEngine()
-user_prefs.create_user_profile("user_id", {"complexity_tolerance": 0.8})
-personalized_ranking = user_prefs.get_personalized_tool_ranking(
-    ["web_search", "data_analysis", "report_generation"],
-    domain="research"
-)
-```
-
-## 📊 Performance
-
-- **Discovery Latency**: Sub-millisecond tool discovery
-- **Planning Speed**: ~100ms for complex sequential thinking plans
-- **Execution Efficiency**: Parallel execution with intelligent dependency resolution
-- **Learning Speed**: Real-time adaptation from user feedback
-- **Test Coverage**: 100% (139/139 tests passing)
+---
 
 ## 🧪 Testing
+
+Run the test suite to verify installation:
 
 ```bash
 # Run all tests
 python -m pytest tests/ -v
 
-# Run specific component tests
-python -m pytest tests/test_advanced_planner.py -v
-python -m pytest tests/test_smart_selector.py -v
-python -m pytest tests/test_user_preferences.py -v
-
 # Run integration tests
-python examples/integration_test.py
+python -m pytest tests/test_mcp_server_integration.py -v
+
+# Test specific components
+python -m pytest tests/test_discovery.py tests/test_executor.py -v
 ```
+
+**Test Coverage**: 213+ tests covering all core functionality and integration scenarios.
+
+---
 
 ## 📚 Documentation
 
-- **[Development Guide](DEVELOPMENT_GUIDE.md)**: Setup and development workflow
-- **[API Documentation](docs/)**: Comprehensive API reference
-- **[Examples](examples/)**: Usage examples and integration tests
-- **[Architecture](docs/architecture.md)**: Detailed system architecture
+- **[Development Guide](DEVELOPMENT_GUIDE.md)** - Setup for developers and contributors
+- **[API Documentation](docs/)** - Detailed API reference and examples
+- **[Architecture Overview](docs/architecture.md)** - System design and component details
 
-## 🗂️ Project Structure
-
-```
-autonomous-mcp-agent/
-├── autonomous_mcp/          # Core source code
-│   ├── discovery.py         # Tool discovery and categorization
-│   ├── planner.py          # Basic execution planning
-│   ├── advanced_planner.py # Advanced planning with AI
-│   ├── smart_selector.py   # ML-based tool selection
-│   ├── user_preferences.py # User personalization engine
-│   └── executor.py         # Chain execution engine
-├── tests/                  # Comprehensive test suite
-├── examples/               # Usage examples and demos
-├── docs/                   # Documentation
-├── archive/                # Development history
-├── requirements.txt        # Dependencies
-└── setup.py               # Package configuration
-```
-
-## 🔬 Current Status
-
-| Component | Status | Tests | Features |
-|-----------|--------|-------|----------|
-| **Tool Discovery** | ✅ Complete | 9/9 | Auto-discovery, categorization, performance tracking |
-| **Basic Planner** | ✅ Complete | 21/21 | Dependency resolution, optimization, validation |
-| **Chain Executor** | ✅ Complete | 37/37 | Async execution, retry logic, state tracking |
-| **Advanced Planner** | ✅ Complete | 26/26 | Sequential thinking, complexity analysis |
-| **Smart Selector** | ✅ Complete | 21/21 | ML algorithms, 5 strategies, learning |
-| **User Preferences** | ✅ Complete | 25/25 | Multi-user, adaptive learning, privacy |
-| **Overall Project** | ✅ **100%** | **139/139** | **Production Ready** |
-
-## 🛣️ Roadmap
-
-### ✅ Phase 1: Core Foundation (Complete)
-- Tool discovery and categorization
-- Basic execution planning
-- Chain execution with monitoring
-
-### ✅ Phase 2: Intelligence Layer (Complete)
-- Advanced planning with sequential thinking
-- Machine learning tool selection
-- User personalization and preferences
-
-### 🔄 Phase 3: Resilience & Production (Next)
-- Advanced error recovery systems
-- Production monitoring and logging
-- Comprehensive resilience testing
-- Performance optimization
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Development Guide](DEVELOPMENT_GUIDE.md) for details on:
+We welcome contributions! Please see our [Development Guide](DEVELOPMENT_GUIDE.md) for:
+- Development environment setup
+- Code style and testing standards
+- Pull request process
+- Architecture guidelines
 
-- Setting up the development environment
-- Running tests and validation
-- Code style and standards
-- Submitting pull requests
+---
+
+## 🛟 Troubleshooting
+
+### Common Issues
+
+**Tools not appearing in Claude Desktop?**
+```bash
+# Check MCP server status
+python mcp_server.py
+
+# Verify configuration
+python -c "import json; print(json.load(open('deploy/claude_desktop_config.json')))"
+
+# Restart Claude Desktop
+```
+
+**No tools discovered?**
+```bash
+# Test tool discovery
+python -c "from autonomous_mcp.real_mcp_discovery import RealMCPDiscovery; print(f'Found {len(RealMCPDiscovery().discover_all_tools())} tools')"
+```
+
+**Performance issues?**
+```bash
+# Check system health
+python -c "from autonomous_mcp.monitoring import MonitoringSystem; print(MonitoringSystem().check_system_health())"
+```
+
+For more troubleshooting help, see the [Development Guide](DEVELOPMENT_GUIDE.md#troubleshooting).
+
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+---
 
-- Built with the [Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) framework
-- Inspired by autonomous agent research and human-AI collaboration principles
-- Designed for seamless integration with existing MCP tool ecosystems
+## 🚀 Get Started
+
+Ready to experience intelligent autonomous task execution? 
+
+1. **Install** the agent following the Quick Start guide above
+2. **Try** a simple task: "Execute autonomous task: Research current AI trends"
+3. **Explore** the available tools and workflows
+4. **Monitor** performance and let the agent learn your preferences
+
+**The agent will automatically discover the best tools and create optimal workflows for any task you give it!**
 
 ---
 
-**Ready to build intelligent, autonomous workflows? Get started with the Autonomous MCP Agent today!** 🚀
+*Built with the [Model Context Protocol (MCP)](https://github.com/modelcontextprotocol) for seamless integration with existing tool ecosystems.*
