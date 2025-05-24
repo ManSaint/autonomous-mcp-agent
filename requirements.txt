@@ -3,6 +3,7 @@
 # Core dependencies
 dataclasses>=0.6  # For Python < 3.7 compatibility
 typing-extensions>=4.0.0  # Extended typing support
+psutil>=5.9.0  # System and process monitoring
 
 # Testing
 pytest>=7.0.0
