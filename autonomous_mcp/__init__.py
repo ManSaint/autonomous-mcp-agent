@@ -41,6 +41,26 @@ from .user_preferences import (
     PreferenceItem
 )
 
+from .error_recovery import (
+    ErrorRecoverySystem,
+    ErrorContext,
+    ErrorCategory,
+    ErrorSeverity,
+    RecoveryStrategy
+)
+
+from .fallback_manager import (
+    FallbackManager,
+    FallbackOption,
+    FallbackChain,
+    FallbackLevel,
+    FallbackReason,
+    FallbackExecutionResult,
+    ToolFallbackStrategy,
+    PlanFallbackStrategy,
+    GracefulDegradationStrategy
+)
+
 __all__ = [
     # Discovery
     'ToolCapability',
@@ -73,5 +93,23 @@ __all__ = [
     'UserProfile',
     'PreferenceType',
     'FeedbackType',
-    'PreferenceItem'
+    'PreferenceItem',
+    
+    # Error Recovery
+    'ErrorRecoverySystem',
+    'ErrorContext',
+    'ErrorCategory',
+    'ErrorSeverity',
+    'RecoveryStrategy',
+    
+    # Fallback Management
+    'FallbackManager',
+    'FallbackOption',
+    'FallbackChain',
+    'FallbackLevel',
+    'FallbackReason',
+    'FallbackExecutionResult',
+    'ToolFallbackStrategy',
+    'PlanFallbackStrategy',
+    'GracefulDegradationStrategy'
 ]

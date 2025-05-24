@@ -261,6 +261,15 @@ class ToolDiscovery:
         
         return matching_tools
     
+    async def get_all_tools(self) -> List[DiscoveredTool]:
+        """
+        Get all discovered tools as a list.
+        
+        Returns:
+            List of all DiscoveredTool objects
+        """
+        return list(self.discovered_tools.values())
+    
     def _calculate_intent_score(self, tool: DiscoveredTool, intent: str) -> float:
         """Calculate how well a tool matches an intent."""
         score = 0.0
