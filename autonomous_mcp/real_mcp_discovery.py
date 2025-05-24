@@ -54,6 +54,24 @@ class MCPTool:
     last_used: Optional[float] = None
     complexity_score: float = 1.0
     reliability_score: float = 1.0
+    
+    @property
+    def capabilities(self):
+        """Compatibility property for planner - returns list of capability-like objects"""
+        from dataclasses import dataclass
+        
+        @dataclass
+        class CapabilityCompat:
+            category: str
+            subcategory: str
+            confidence: float = 0.8
+            
+        # Create a compatibility capability based on the tool's category
+        return [CapabilityCompat(
+            category=self.category.value,
+            subcategory="general",
+            confidence=self.reliability_score
+        )]
 
 
 class RealMCPDiscovery:

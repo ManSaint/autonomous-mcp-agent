@@ -83,7 +83,7 @@ class SmartToolSelector:
     - Machine learning-based selection
     """
     
-    def __init__(self, discovery_system: ToolDiscovery):
+    def __init__(self, discovery_system):
         """Initialize with a tool discovery system"""
         self.discovery = discovery_system
         self.usage_patterns: Dict[str, UsagePattern] = {}

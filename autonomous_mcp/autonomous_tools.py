@@ -78,7 +78,8 @@ class AdvancedAutonomousTools:
         self.mcp_executor = RealMCPChainExecutor()
         
         # Core framework components using real discovery
-        self.discovery = ToolDiscovery()
+        # self.discovery = ToolDiscovery()  # Temporarily disabled
+        self.discovery = self.real_discovery  # Use real discovery for compatibility
         self.executor = ChainExecutor()
         # Use real discovery for planner to have access to actual tools
         self.planner = AdvancedExecutionPlanner(self.real_discovery)

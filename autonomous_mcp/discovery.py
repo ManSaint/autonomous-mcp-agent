@@ -125,6 +125,8 @@ class ToolDiscovery:
         Returns:
             Dictionary of tool name to DiscoveredTool objects
         """
+        import traceback
+        logger.error(f"COMPATIBILITY: discover_tools called from: {traceback.format_stack()}")
         return self.discover_all_tools(available_tools, force_refresh)
 
     def discover_all_tools(self, available_tools: List[Dict[str, Any]], force_refresh: bool = False) -> Dict[str, DiscoveredTool]:

@@ -19,6 +19,7 @@ from mcp.server.stdio import stdio_server
 
 # Internal framework imports
 from .discovery import ToolDiscovery
+from .real_mcp_discovery import RealMCPDiscovery
 from .executor import ChainExecutor
 from .advanced_planner import AdvancedExecutionPlanner
 from .error_recovery import ErrorRecoverySystem
@@ -49,9 +50,11 @@ class MCPProtocolBridge:
     def __init__(self):
         """Initialize the MCP protocol bridge"""
         self.server = Server("autonomous-mcp-agent")
-        self.discovery = ToolDiscovery()
+        # Use real discovery for actual MCP tools
+        self.real_discovery = RealMCPDiscovery()
+        self.discovery = self.real_discovery  # For compatibility
         self.executor = ChainExecutor()
-        self.planner = AdvancedExecutionPlanner(self.discovery)
+        self.planner = AdvancedExecutionPlanner(self.real_discovery)
         self.error_recovery = ErrorRecoverySystem()
         self.monitoring = MonitoringSystem()
         self.preferences = UserPreferenceEngine()
@@ -96,9 +99,11 @@ class MCPProtocolBridge:
     def __init__(self):
         """Initialize the MCP protocol bridge"""
         self.server = Server("autonomous-mcp-agent")
-        self.discovery = ToolDiscovery()
+        # Use real discovery for actual MCP tools
+        self.real_discovery = RealMCPDiscovery()
+        self.discovery = self.real_discovery  # For compatibility
         self.executor = ChainExecutor()
-        self.planner = AdvancedExecutionPlanner(self.discovery)
+        self.planner = AdvancedExecutionPlanner(self.real_discovery)
         self.error_recovery = ErrorRecoverySystem()
         self.monitoring = MonitoringSystem()
         self.preferences = UserPreferenceEngine()
