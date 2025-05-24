@@ -240,8 +240,15 @@ class BasicExecutionPlanner:
             
             # Look up tool info if discovery system is available
             tool_info = {}
+            discovered_tool = None
             if self.discovery and tool_id in self.discovery.tools:
-                tool_info = self.discovery.tools[tool_id]
+                discovered_tool = self.discovery.tools[tool_id]
+                tool_info = {
+                    'name': discovered_tool.name,
+                    'server': discovered_tool.server,
+                    'description': discovered_tool.description,
+                    'parameters': discovered_tool.parameters
+                }
             
             tool_call = ToolCall(
                 tool_name=tool_info.get('name', tool_id),

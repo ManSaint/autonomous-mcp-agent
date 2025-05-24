@@ -108,6 +108,11 @@ class ToolDiscovery:
         self.cache_ttl = cache_ttl
         self.last_discovery_time = 0
         self._discovery_cache = {}
+    
+    @property
+    def tools(self) -> Dict[str, DiscoveredTool]:
+        """Compatibility property for accessing discovered tools"""
+        return self.discovered_tools
         
     def discover_all_tools(self, available_tools: List[Dict[str, Any]], force_refresh: bool = False) -> Dict[str, DiscoveredTool]:
         """
