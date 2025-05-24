@@ -904,7 +904,7 @@ class MonitoringSystem:
     
     def integrate_with_discovery(self, discovery: ToolDiscovery):
         """Integrate monitoring with tool discovery system"""
-        original_discover = discovery.discover_tools
+        original_discover = discovery.discover_all_tools
         
         def monitored_discover(*args, **kwargs):
             with self.time_operation("tool_discovery"):
@@ -915,7 +915,7 @@ class MonitoringSystem:
                 })
                 return result
         
-        discovery.discover_tools = monitored_discover
+        discovery.discover_all_tools = monitored_discover
         self.update_component_health("tool_discovery", ComponentHealth.HEALTHY,
                                    "Discovery monitoring integration active")
     
