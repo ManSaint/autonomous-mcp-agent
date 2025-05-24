@@ -171,8 +171,17 @@ class BasicExecutionPlanner:
             # Calculate confidence from the tool's capabilities
             confidence = max(cap.confidence for cap in discovered_tool.capabilities) if discovered_tool.capabilities else 0.5
             
+            # Create tool info dict for helper methods
+            tool_info_dict = {
+                'name': discovered_tool.name,
+                'server': discovered_tool.server,
+                'description': discovered_tool.description,
+                'parameters': discovered_tool.parameters,
+                'category': discovered_tool.capabilities[0].category if discovered_tool.capabilities else 'unknown'
+            }
+            
             # Create basic parameters based on context
-            parameters = self._generate_parameters(discovered_tool.__dict__, intent, context)
+            parameters = self._generate_parameters(tool_info_dict, intent, context)
             
             tool_call = ToolCall(
                 tool_name=discovered_tool.name,
@@ -180,7 +189,7 @@ class BasicExecutionPlanner:
                 parameters=parameters,
                 order=i,
                 dependencies=self._determine_dependencies(i, tool_calls),
-                expected_output_type=self._infer_output_type(discovered_tool.__dict__)
+                expected_output_type=self._infer_output_type(tool_info_dict)
             )
             
             tool_calls.append(tool_call)
@@ -193,7 +202,7 @@ class BasicExecutionPlanner:
             plan_id=plan_id,
             intent=intent,
             tools=tool_calls,
-            confidence_score=self._calculate_plan_confidence([(tool.name, max(cap.confidence for cap in tool.capabilities) if tool.capabilities else 0.5) for tool in tools_info]),
+            confidence_score=self._calculate_plan_confidence(tools_info),
             estimated_duration=self._estimate_duration(tool_calls),
             metadata={'context': context or {}}
         )
@@ -378,13 +387,23 @@ class BasicExecutionPlanner:
         
         return None
     
-    def _calculate_plan_confidence(self, tools_info: List[Tuple[str, float]]) -> float:
+    def _calculate_plan_confidence(self, tools_info: List) -> float:
         """Calculate overall confidence score for a plan"""
         if not tools_info:
             return 0.0
         
+        # Calculate confidence from DiscoveredTool objects
+        confidences = []
+        for tool in tools_info:
+            if hasattr(tool, 'capabilities') and tool.capabilities:
+                # Get max confidence from capabilities
+                tool_confidence = max(cap.confidence for cap in tool.capabilities)
+            else:
+                # Fallback confidence
+                tool_confidence = 0.5
+            confidences.append(tool_confidence)
+        
         # Average confidence of all tools
-        confidences = [conf for _, conf in tools_info]
         return sum(confidences) / len(confidences)
     
     def _estimate_duration(self, tool_calls: List[ToolCall]) -> float:
