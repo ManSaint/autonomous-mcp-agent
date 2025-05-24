@@ -199,7 +199,158 @@ class MCPProtocolBridge:
             function=self._discover_tools
         )
         
-        logger.info(f"Registered core autonomous agent tools")
+        # Import advanced tools
+        from .autonomous_tools import AdvancedAutonomousTools
+        self.advanced_tools = AdvancedAutonomousTools()
+        
+        # 3. Create intelligent workflow
+        self._register_tool(
+            name="create_intelligent_workflow",
+            description="Generate intelligent workflow for complex task execution with advanced planning",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "task_description": {
+                        "type": "string",
+                        "description": "Natural language task description"
+                    },
+                    "context": {
+                        "type": "object",
+                        "description": "Additional context or constraints",
+                        "default": {}
+                    },
+                    "include_analysis": {
+                        "type": "boolean",
+                        "description": "Include task complexity analysis",
+                        "default": True
+                    },
+                    "include_recommendations": {
+                        "type": "boolean",
+                        "description": "Include personalized recommendations",
+                        "default": True
+                    }
+                },
+                "required": ["task_description"]
+            },
+            function=self._create_intelligent_workflow
+        )
+        
+        # 4. Analyze task complexity
+        self._register_tool(
+            name="analyze_task_complexity",
+            description="Analyze task complexity and provide detailed recommendations and risk assessment",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "task_description": {
+                        "type": "string",
+                        "description": "Task to analyze for complexity"
+                    },
+                    "context": {
+                        "type": "object",
+                        "description": "Additional context for analysis",
+                        "default": {}
+                    },
+                    "include_tool_recommendations": {
+                        "type": "boolean",
+                        "description": "Include specific tool recommendations",
+                        "default": True
+                    }
+                },
+                "required": ["task_description"]
+            },
+            function=self._analyze_task_complexity
+        )
+        
+        # 5. Get personalized recommendations
+        self._register_tool(
+            name="get_personalized_recommendations",
+            description="Get ML-powered personalized recommendations based on user preferences and history",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "task_description": {
+                        "type": "string",
+                        "description": "Task to get recommendations for"
+                    },
+                    "context": {
+                        "type": "object",
+                        "description": "Additional context",
+                        "default": {}
+                    },
+                    "preferences": {
+                        "type": "object",
+                        "description": "User preferences to consider",
+                        "default": {}
+                    },
+                    "include_optimization_tips": {
+                        "type": "boolean",
+                        "description": "Include optimization tips",
+                        "default": True
+                    }
+                },
+                "required": ["task_description"]
+            },
+            function=self._get_personalized_recommendations
+        )
+        
+        # 6. Monitor agent performance
+        self._register_tool(
+            name="monitor_agent_performance",
+            description="Monitor real-time agent performance with detailed metrics and insights",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "time_range": {
+                        "type": "string",
+                        "enum": ["1h", "24h", "7d", "30d"],
+                        "description": "Time range for performance metrics",
+                        "default": "24h"
+                    },
+                    "include_details": {
+                        "type": "boolean",
+                        "description": "Include detailed performance breakdown",
+                        "default": False
+                    },
+                    "include_trends": {
+                        "type": "boolean",
+                        "description": "Include performance trend analysis",
+                        "default": True
+                    }
+                }
+            },
+            function=self._monitor_agent_performance
+        )
+        
+        # 7. Configure agent preferences
+        self._register_tool(
+            name="configure_agent_preferences",
+            description="Configure agent preferences and personalization settings",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "preferences": {
+                        "type": "object",
+                        "description": "Preference settings to apply"
+                    },
+                    "operation": {
+                        "type": "string",
+                        "enum": ["update", "replace", "reset"],
+                        "description": "Configuration operation type",
+                        "default": "update"
+                    },
+                    "validate_preferences": {
+                        "type": "boolean",
+                        "description": "Validate preferences before applying",
+                        "default": True
+                    }
+                },
+                "required": ["preferences"]
+            },
+            function=self._configure_agent_preferences
+        )
+        
+        logger.info(f"Registered {len(self.mcp_tools)} autonomous agent tools including advanced capabilities")
     
     def _register_tool(self, name: str, description: str, input_schema: Dict[str, Any], 
                       function: Callable, category: str = "autonomous"):
@@ -415,6 +566,119 @@ class MCPProtocolBridge:
                 'success': False,
                 'error': str(e)
             }
+    
+    # Advanced Autonomous Tool Implementations
+    
+    async def _create_intelligent_workflow(self, task_description: str, context: Dict[str, Any] = None, 
+                                         include_analysis: bool = True, include_recommendations: bool = True) -> Dict[str, Any]:
+        """Create intelligent workflow implementation"""
+        try:
+            analysis = None
+            recommendations = None
+            
+            if include_analysis:
+                analysis = await self.advanced_tools.analyze_task_complexity(task_description, context or {})
+            
+            if include_recommendations:
+                recommendations = await self.advanced_tools.get_personalized_recommendations(
+                    task_description, context or {}, {}
+                )
+            
+            workflow = await self.advanced_tools.create_intelligent_workflow(
+                task_description, context, analysis, recommendations
+            )
+            
+            return {
+                'success': True,
+                'workflow': {
+                    'workflow_id': workflow.workflow_id,
+                    'title': workflow.title,
+                    'description': workflow.description,
+                    'total_estimated_duration': workflow.total_estimated_duration,
+                    'overall_success_probability': workflow.overall_success_probability,
+                    'step_count': len(workflow.steps),
+                    'created_at': workflow.created_at.isoformat(),
+                    'metadata': workflow.metadata
+                },
+                'analysis': analysis.__dict__ if analysis else None,
+                'recommendations': recommendations
+            }
+            
+        except Exception as e:
+            logger.error(f"Intelligent workflow creation failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    async def _analyze_task_complexity(self, task_description: str, context: Dict[str, Any] = None, 
+                                     include_tool_recommendations: bool = True) -> Dict[str, Any]:
+        """Analyze task complexity implementation"""
+        try:
+            analysis = await self.advanced_tools.analyze_task_complexity(task_description, context or {})
+            
+            result = {
+                'success': True,
+                'complexity_score': analysis.complexity_score,
+                'estimated_duration': analysis.estimated_duration,
+                'recommended_approach': analysis.recommended_approach,
+                'success_probability': analysis.success_probability,
+                'risk_factors': analysis.risk_factors
+            }
+            
+            if include_tool_recommendations:
+                result['required_tools'] = analysis.required_tools
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Task complexity analysis failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    async def _get_personalized_recommendations(self, task_description: str, context: Dict[str, Any] = None,
+                                              preferences: Dict[str, Any] = None, include_optimization_tips: bool = True) -> Dict[str, Any]:
+        """Get personalized recommendations implementation"""
+        try:
+            recommendations = await self.advanced_tools.get_personalized_recommendations(
+                task_description, context or {}, preferences or {}
+            )
+            
+            if not include_optimization_tips and 'optimization_tips' in recommendations:
+                del recommendations['optimization_tips']
+            
+            return recommendations
+            
+        except Exception as e:
+            logger.error(f"Personalized recommendations failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    async def _monitor_agent_performance(self, time_range: str = "24h", include_details: bool = False, 
+                                       include_trends: bool = True) -> Dict[str, Any]:
+        """Monitor agent performance implementation"""
+        try:
+            performance_data = await self.advanced_tools.monitor_agent_performance(time_range, include_details)
+            
+            if not include_trends and 'performance_trends' in performance_data.get('metrics', {}):
+                del performance_data['metrics']['performance_trends']
+            
+            return performance_data
+            
+        except Exception as e:
+            logger.error(f"Performance monitoring failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    async def _configure_agent_preferences(self, preferences: Dict[str, Any], operation: str = "update",
+                                         validate_preferences: bool = True) -> Dict[str, Any]:
+        """Configure agent preferences implementation"""
+        try:
+            if validate_preferences:
+                # Basic validation
+                if not isinstance(preferences, dict):
+                    return {'success': False, 'error': 'Preferences must be a dictionary'}
+            
+            config_result = await self.advanced_tools.configure_agent_preferences(preferences, operation)
+            return config_result
+            
+        except Exception as e:
+            logger.error(f"Preference configuration failed: {e}")
+            return {'success': False, 'error': str(e)}
     
     def get_tool_list(self) -> List[types.Tool]:
         """Get list of available tools for MCP list_tools request"""
