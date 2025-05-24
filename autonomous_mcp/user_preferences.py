@@ -135,7 +135,7 @@ class UserPreferenceEngine:
         self.profiles: Dict[str, UserProfile] = {}
         self.current_user_id: Optional[str] = None
         self.learning_enabled = True
-        self.adaptation_rate = 0.1
+        self.adaptation_rate = 0.2  # Increased for stronger learning
         
         # Load existing profiles
         self._load_profiles()

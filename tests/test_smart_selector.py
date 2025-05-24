@@ -425,7 +425,7 @@ class TestIntegrationWithAdvancedPlanner:
         scores = await selector.select_best_tools(context)
         
         assert len(scores) > 0
-        reasoning_tool = next((s for s in scores if "reasoning" in s.tool_name), None)
+        reasoning_tool = next((s for s in scores if "sequential_thinking" in s.tool_name), None)
         assert reasoning_tool is not None
 
 

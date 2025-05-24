@@ -81,7 +81,7 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
         super().__init__(discovery_system)
         self.sequential_thinking_tool = sequential_thinking_tool
         self.smart_selector = smart_selector or (SmartToolSelector(discovery_system) if discovery_system else None)
-        self.complexity_threshold = 0.6  # Above this, use sequential thinking
+        self.complexity_threshold = 0.3  # Above this, use sequential thinking
         self.reasoning_timeout = 30.0  # Max time for reasoning process
         
         # Complexity indicators
@@ -463,7 +463,7 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
             
         except asyncio.TimeoutError:
             logger.warning("Sequential thinking timed out")
-            return {'error': 'Reasoning timeout', 'final_thought': 'Timeout during reasoning'}
+            return {'error': 'Timeout during reasoning', 'final_thought': 'Timeout during reasoning'}
         except Exception as e:
             logger.error(f"Sequential thinking error: {e}")
             return {'error': str(e), 'final_thought': 'Error during reasoning'}
