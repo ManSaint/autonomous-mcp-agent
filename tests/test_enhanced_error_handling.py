@@ -16,7 +16,7 @@ from autonomous_mcp.enhanced_error_handling import (
     ToolSubstitutionEngine, CircuitBreakerState, ToolHealthMetrics
 )
 from autonomous_mcp.enhanced_executor import EnhancedChainExecutor
-from autonomous_mcp.discovery import ToolDiscoverySystem, DiscoveredTool
+from autonomous_mcp.discovery import ToolDiscovery, DiscoveredTool
 from autonomous_mcp.planner import ExecutionPlan, ToolCall
 from autonomous_mcp.executor import ExecutionStatus
 
@@ -27,7 +27,7 @@ class TestEnhancedErrorHandler:
     @pytest.fixture
     def mock_discovery_system(self):
         """Create mock discovery system with test tools"""
-        discovery = MagicMock(spec=ToolDiscoverySystem)
+        discovery = MagicMock(spec=ToolDiscovery)
         
         # Mock tools for testing
         web_search_tool = DiscoveredTool(
@@ -268,7 +268,7 @@ class TestEnhancedChainExecutor:
     @pytest.fixture
     def mock_discovery_system(self):
         """Create comprehensive mock discovery system"""
-        discovery = MagicMock(spec=ToolDiscoverySystem)
+        discovery = MagicMock(spec=ToolDiscovery)
         
         # Create test tools
         tools = {
