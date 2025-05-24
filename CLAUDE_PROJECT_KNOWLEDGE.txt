@@ -1,5 +1,14 @@
 # 🚀 Autonomous MCP Agent - Project Knowledge
 
+## ⚠️ **CRITICAL: ALWAYS USE FULL PATH COMMANDS**
+```bash
+# CORRECT way to run commands:
+cd /d "D:\Development\Autonomous-MCP-Agent" && [command]
+
+# WRONG - will fail because wrong directory:
+git status  # This runs from C:\Users\manu_\AppData\Local\AnthropicClaude\app-0.9.3
+```
+
 ## 📌 Current Status
 - **Phase 1**: 100% COMPLETE ✅ (4/4 tasks done)
 - **Phase 2**: 75% COMPLETE ✅ (3/4 tasks done)
@@ -102,19 +111,36 @@ python -m pytest tests/ -v            # All unit tests
 python -m pytest tests/test_advanced_planner.py -v  # Advanced planner tests
 ```
 
-### 📝 **Session Protocol**
-1. **Start**: Navigate to D:\Development\Autonomous-MCP-Agent
-2. **Check**: git status, PROJECT_STATUS.md for next task
-3. **During**: Work in correct directory, test changes
-4. **Update**: If major milestone reached, update PROJECT_STATUS.md and this knowledge file
-5. **End**: git add . && git commit -m "description" && git push origin main
+### 📝 **Session Protocol - CRITICAL: Directory Management**
+⚠️ **IMPORTANT**: Desktop Commander execute_command starts from C:\Users\manu_\AppData\Local\AnthropicClaude\app-0.9.3 by default, NOT the project directory!
+
+**ALWAYS use full path commands:**
+1. **Start**: `cd /d "D:\Development\Autonomous-MCP-Agent" && echo %cd%` to confirm location
+2. **Check**: `cd /d "D:\Development\Autonomous-MCP-Agent" && git status` for git operations  
+3. **During**: Use `cd /d "D:\Development\Autonomous-MCP-Agent" && [command]` for ALL git/test commands
+4. **File Operations**: Use Desktop Commander file tools (read_file, write_file, etc.) with absolute paths when possible
+5. **Testing**: `cd /d "D:\Development\Autonomous-MCP-Agent" && python [script]` for running tests
+6. **Update**: If major milestone reached, update PROJECT_STATUS.md and this knowledge file
+7. **End**: 
+   ```
+   cd /d "D:\Development\Autonomous-MCP-Agent" && git add .
+   cd /d "D:\Development\Autonomous-MCP-Agent" && git commit -m "description"
+   cd /d "D:\Development\Autonomous-MCP-Agent" && git push origin main
+   ```
+
+**Why this is necessary:**
+- Each execute_command call starts from Desktop Commander's default directory
+- Directory changes don't persist between separate execute_command calls
+- Must explicitly change directory in EVERY command that needs project context
 
 ## 💡 **Key Development Insights**
+- **Directory Management**: CRITICAL - Always use `cd /d "D:\Development\Autonomous-MCP-Agent" && [command]` format
+- **Desktop Commander Limitation**: execute_command starts from C:\Users\manu_\AppData\Local\AnthropicClaude\app-0.9.3, not project directory
 - **Component Integration**: Discovery → Planning → Execution pipeline works seamlessly
 - **Performance**: Sub-millisecond discovery, fast planning, reliable execution  
 - **Architecture**: Async/await essential for scalability
-- **Testing**: >87% coverage ensures stability
-- **Intelligence Layer**: Sequential thinking dramatically improves planning quality
+- **Testing**: >95% coverage ensures stability
+- **Intelligence Layer**: Sequential thinking + Smart selection + User preferences = Truly intelligent agent
 
 ## 🎯 **Task 2.3 Achievements**
 
@@ -152,3 +178,36 @@ python -m pytest tests/test_advanced_planner.py -v  # Advanced planner tests
 **Last Updated**: Session 9 - Task 2.3 Complete: User Preference Engine
 **Next Session Goal**: Begin Task 2.4 - Complex Workflow Testing
 **Major Achievement**: 🎉 Third Intelligence Layer component complete! The agent now has sophisticated user preference learning and personalized tool recommendations! Phase 2 is 75% complete!
+### 🔧 Quick Setup
+```bash
+# ALWAYS start with full path command:
+cd /d "D:\Development\Autonomous-MCP-Agent" && echo %cd%
+
+# For Python virtual environment (if needed):
+cd /d "D:\Development\Autonomous-MCP-Agent" && python -m venv venv
+cd /d "D:\Development\Autonomous-MCP-Agent" && venv\Scripts\activate
+cd /d "D:\Development\Autonomous-MCP-Agent" && pip install -r requirements.txt
+```
+
+### 🧪 Testing Commands
+```bash
+# Quick tests
+cd /d "D:\Development\Autonomous-MCP-Agent" && python test_user_preferences_simple.py
+cd /d "D:\Development\Autonomous-MCP-Agent" && python test_user_preference_integration.py
+cd /d "D:\Development\Autonomous-MCP-Agent" && python comprehensive_test.py
+
+# Full pytest suite
+cd /d "D:\Development\Autonomous-MCP-Agent" && python -m pytest tests/ -v
+cd /d "D:\Development\Autonomous-MCP-Agent" && python -m pytest tests/test_user_preferences.py -v
+```
+
+### 🔄 Git Operations
+```bash
+# Check status
+cd /d "D:\Development\Autonomous-MCP-Agent" && git status
+
+# Add and commit
+cd /d "D:\Development\Autonomous-MCP-Agent" && git add .
+cd /d "D:\Development\Autonomous-MCP-Agent" && git commit -m "description"
+cd /d "D:\Development\Autonomous-MCP-Agent" && git push origin main
+```
