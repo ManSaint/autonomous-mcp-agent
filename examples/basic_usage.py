@@ -20,7 +20,7 @@ from autonomous_mcp.user_preferences import UserPreferenceEngine
 
 async def basic_usage_example():
     """Demonstrate basic usage of the Autonomous MCP Agent"""
-    print("🤖 Autonomous MCP Agent - Basic Usage Example")
+    print("Autonomous MCP Agent - Basic Usage Example")
     print("=" * 50)
     
     # Step 1: Initialize the core components
@@ -95,12 +95,12 @@ async def basic_usage_example():
     print("\n6. User Personalization Results...")
     available_tools = ["web_search", "file_read", "data_analysis", "report_generation"]
     personalized_ranking = user_prefs.get_personalized_tool_ranking(
-        available_tools, 
-        domain="research"
+        available_tools,
+        task_context={"domain": "research"}
     )
     
     print("   • Personalized Tool Ranking:")
-    for tool, score in sorted(personalized_ranking.items(), key=lambda x: x[1], reverse=True):
+    for tool, score in personalized_ranking:
         print(f"     - {tool}: {score:.3f}")
     
     # Step 7: Export user profile
@@ -109,8 +109,8 @@ async def basic_usage_example():
     print(f"   • Profile exported with {profile_data['total_interactions']} interactions")
     
     print("\n" + "=" * 50)
-    print("✅ Basic usage example completed successfully!")
-    print("🎯 The agent is ready for production use!")
+    print("[OK] Basic usage example completed successfully!")
+    print("[READY] The agent is ready for production use!")
 
 if __name__ == "__main__":
     asyncio.run(basic_usage_example())
