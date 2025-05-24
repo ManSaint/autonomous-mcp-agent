@@ -14,6 +14,8 @@ from mcp import types
 
 # Internal imports
 from autonomous_mcp.mcp_protocol import MCPProtocolBridge
+from autonomous_mcp.real_mcp_discovery import get_discovery_instance
+from autonomous_mcp.mcp_chain_executor import get_executor_instance
 
 # Configure logging
 logging.basicConfig(
@@ -28,17 +30,27 @@ logger = logging.getLogger(__name__)
 
 
 class AutonomousMCPServer:
-    """Main MCP Server class"""
+    """Main MCP Server class with real tool integration"""
     
     def __init__(self):
         """Initialize the autonomous MCP server"""
         self.bridge: Optional[MCPProtocolBridge] = None
         self.server_running = False
+        self.discovery = None
+        self.executor = None
         
     async def initialize(self):
         """Initialize the server and framework components"""
         try:
-            logger.info("Initializing Autonomous MCP Server...")
+            logger.info("Initializing Autonomous MCP Server with real tool discovery...")
+            
+            # Initialize discovery and execution systems
+            self.discovery = get_discovery_instance()
+            self.executor = get_executor_instance()
+            
+            # Discover available tools
+            discovered_tools = self.discovery.discover_all_tools()
+            logger.info(f"🔍 Discovered {len(discovered_tools)} real MCP tools")
             
             # Create the MCP protocol bridge
             self.bridge = MCPProtocolBridge()
@@ -46,7 +58,7 @@ class AutonomousMCPServer:
             # Set up MCP server handlers
             self._setup_server_handlers()
             
-            logger.info("✅ Autonomous MCP Server initialized successfully!")
+            logger.info("✅ Autonomous MCP Server initialized successfully with real tool integration!")
             return True
             
         except Exception as e:

@@ -1,0 +1,191 @@
+{
+  "servers": {
+    "brave": {
+      "name": "brave",
+      "tools": [
+        "brave_web_search",
+        "brave_local_search"
+      ],
+      "status": "active",
+      "last_discovered": 1748115545.6000307
+    },
+    "memory": {
+      "name": "memory",
+      "tools": [
+        "memory_create_entities",
+        "memory_read_graph"
+      ],
+      "status": "active",
+      "last_discovered": 1748115545.6000307
+    },
+    "github": {
+      "name": "github",
+      "tools": [
+        "github_search_repositories",
+        "github_create_repository"
+      ],
+      "status": "active",
+      "last_discovered": 1748115545.6000307
+    },
+    "postman": {
+      "name": "postman",
+      "tools": [
+        "postman_list_workspaces"
+      ],
+      "status": "active",
+      "last_discovered": 1748115545.6000307
+    },
+    "trello": {
+      "name": "trello",
+      "tools": [
+        "trello_get_lists"
+      ],
+      "status": "active",
+      "last_discovered": 1748115545.6010303
+    },
+    "taskmaster": {
+      "name": "taskmaster",
+      "tools": [
+        "taskmaster_get_tasks"
+      ],
+      "status": "active",
+      "last_discovered": 1748115545.6010303
+    }
+  },
+  "tools": {
+    "brave_web_search": {
+      "name": "brave_web_search",
+      "server": "brave",
+      "category": "search",
+      "description": "Search tool: brave_web_search",
+      "complexity_score": 2.0,
+      "reliability_score": 0.9966286420822144,
+      "usage_count": 1,
+      "success_rate": 1.0
+    },
+    "brave_local_search": {
+      "name": "brave_local_search",
+      "server": "brave",
+      "category": "search",
+      "description": "Search tool: brave_local_search",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "memory_create_entities": {
+      "name": "memory_create_entities",
+      "server": "memory",
+      "category": "memory",
+      "description": "Creation tool: memory_create_entities",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "memory_read_graph": {
+      "name": "memory_read_graph",
+      "server": "memory",
+      "category": "memory",
+      "description": "Tool: memory_read_graph",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "github_search_repositories": {
+      "name": "github_search_repositories",
+      "server": "github",
+      "category": "search",
+      "description": "Search tool: github_search_repositories",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "github_create_repository": {
+      "name": "github_create_repository",
+      "server": "github",
+      "category": "development",
+      "description": "Creation tool: github_create_repository",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "postman_list_workspaces": {
+      "name": "postman_list_workspaces",
+      "server": "postman",
+      "category": "communication",
+      "description": "Tool: postman_list_workspaces",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "trello_get_lists": {
+      "name": "trello_get_lists",
+      "server": "trello",
+      "category": "productivity",
+      "description": "Retrieval tool: trello_get_lists",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    },
+    "taskmaster_get_tasks": {
+      "name": "taskmaster_get_tasks",
+      "server": "taskmaster",
+      "category": "productivity",
+      "description": "Retrieval tool: taskmaster_get_tasks",
+      "complexity_score": 2.0,
+      "reliability_score": 1.0,
+      "usage_count": 0,
+      "success_rate": 1.0
+    }
+  },
+  "summary": {
+    "total_tools": 9,
+    "total_servers": 6,
+    "categories": {
+      "search": 3,
+      "memory": 2,
+      "development": 1,
+      "communication": 1,
+      "automation": 0,
+      "analysis": 0,
+      "content": 0,
+      "productivity": 2,
+      "system": 0,
+      "unknown": 0
+    },
+    "metrics": {
+      "total_discoveries": 9,
+      "discovery_time": 0.0009996891021728516,
+      "categorization_accuracy": 0.0,
+      "tool_availability_rate": 1.0
+    },
+    "top_servers": [
+      [
+        "brave",
+        2
+      ],
+      [
+        "memory",
+        2
+      ],
+      [
+        "github",
+        2
+      ],
+      [
+        "postman",
+        1
+      ],
+      [
+        "trello",
+        1
+      ]
+    ]
+  }
+}
