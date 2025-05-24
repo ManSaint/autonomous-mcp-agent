@@ -482,3 +482,34 @@ if __name__ == "__main__":
     matching_tools = discovery.get_tools_for_intent("search for files")
     for tool in matching_tools:
         print(f"  - {tool.name}: {tool.description}")
+
+    async def get_all_tools(self) -> List[DiscoveredTool]:
+        """
+        Get all discovered tools as a list.
+        
+        Returns:
+            List of all DiscoveredTool objects
+        """
+        return list(self.discovered_tools.values())
+
+    def get_tool_info(self, tool_name: str) -> Dict[str, Any]:
+        """
+        Get information about a specific tool.
+        
+        Args:
+            tool_name: Name of the tool
+            
+        Returns:
+            Dictionary with tool information
+        """
+        tool = self.discovered_tools.get(tool_name)
+        if not tool:
+            return {}
+        
+        return {
+            "name": tool.name,
+            "category": tool.category,
+            "description": tool.description,
+            "capabilities": [{"type": cap.capability_type, "description": cap.description} for cap in tool.capabilities],
+            "performance": tool.performance_metrics
+        }

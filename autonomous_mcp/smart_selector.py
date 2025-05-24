@@ -30,6 +30,7 @@ class SelectionStrategy(Enum):
     HYBRID = "hybrid"                  # Combine multiple factors
     ML_RECOMMENDATION = "ml"           # Machine learning recommendations
     CONTEXT_AWARE = "context"          # Consider current context
+    PERSONALIZED = "personalized"     # Use user preferences and personalization
 
 
 @dataclass

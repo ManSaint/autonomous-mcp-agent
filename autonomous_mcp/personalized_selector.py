@@ -41,23 +41,73 @@ class PersonalizedToolSelector(SmartToolSelector):
     - Explicit user feedback and preferences
     """
     
-    def __init__(self, preference_engine: Optional[UserPreferenceEngine] = None):
+    def __init__(self, discovery_system=None, preference_engine: Optional[UserPreferenceEngine] = None):
         """
         Initialize the personalized tool selector.
         
         Args:
+            discovery_system: ToolDiscovery instance for tool information
             preference_engine: Optional UserPreferenceEngine instance
         """
-        super().__init__()
+        super().__init__(discovery_system=discovery_system)
         self.preference_engine = preference_engine
         self.personalization_weight = 0.4  # Weight for preference factors
-        
-        # Add personalized selection strategy
-        self.strategies[SelectionStrategy.PERSONALIZED] = self._personalized_selection
     
     def set_preference_engine(self, preference_engine: UserPreferenceEngine):
         """Set or update the preference engine."""
         self.preference_engine = preference_engine
+    
+    async def select_best_tools(
+        self,
+        context,  # Will be SelectionContext from smart_selector
+        strategy = SelectionStrategy.PERSONALIZED,
+        max_results: Optional[int] = None
+    ):
+        """
+        Override select_best_tools to handle personalized selection strategy.
+        """
+        if strategy == SelectionStrategy.PERSONALIZED and self.preference_engine:
+            return await self._personalized_selection(context, max_results)
+        else:
+            # Fall back to parent class for other strategies
+            return await super().select_best_tools(context, strategy, max_results)
+    
+    async def _personalized_selection(self, context, max_results: Optional[int] = None):
+        """
+        Perform personalized tool selection based on user preferences.
+        """
+        max_results = max_results or getattr(self, 'max_recommendations', 5)
+        
+        # Get available tools
+        available_tools = await self.discovery.get_all_tools()
+        if not available_tools:
+            return []
+        
+        # Get base recommendations using hybrid strategy
+        base_scores = await super().select_best_tools(context, SelectionStrategy.HYBRID, max_results * 2)
+        
+        # If no user context or preferences available, return base scores
+        user_id = getattr(context, 'user_id', None)
+        if not user_id or not self.preference_engine:
+            return base_scores[:max_results]
+        
+        # Apply personalization to base recommendations
+        personalized_scores = []
+        
+        for base_score in base_scores:
+            personalized_score = self._apply_personalization(
+                tool_name=base_score.tool_name,
+                base_score=base_score,
+                user_id=user_id,
+                intent=getattr(context, 'user_intent', ''),
+                context_info=context
+            )
+            personalized_scores.append(personalized_score)
+        
+        # Sort by personalized score and return top results
+        result = sorted(personalized_scores, key=lambda x: x.total_score, reverse=True)[:max_results]
+        
+        return result
     
     def recommend_tools(self, intent: str, available_tools: List[str], 
                        num_recommendations: int = 3,
@@ -117,7 +167,7 @@ class PersonalizedToolSelector(SmartToolSelector):
             return []
         
         # Get base recommendations from multiple strategies
-        base_strategies = [SelectionStrategy.HYBRID, SelectionStrategy.ML_BASED, SelectionStrategy.CAPABILITY]
+        base_strategies = [SelectionStrategy.HYBRID, SelectionStrategy.ML_RECOMMENDATION, SelectionStrategy.CAPABILITY_MATCH]
         all_base_recommendations = []
         
         for strategy in base_strategies:
@@ -143,7 +193,7 @@ class PersonalizedToolSelector(SmartToolSelector):
             base_rec = next((rec for rec in all_base_recommendations if rec.tool_name == tool), None)
             if not base_rec:
                 # Create minimal base recommendation
-                base_rec = ToolRecommendation(
+                base_rec = ToolScore(
                     tool_name=tool,
                     confidence_score=0.1,
                     reasoning="No base recommendation available"
@@ -322,7 +372,7 @@ class PersonalizedToolSelector(SmartToolSelector):
         else:
             return 0.4
     
-    def _generate_personalized_reasoning(self, tool: str, base_rec: ToolRecommendation,
+    def _generate_personalized_reasoning(self, tool: str, base_rec: ToolScore,
                                        preference_factors: Dict[str, float]) -> str:
         """Generate reasoning text that explains the personalized recommendation."""
         base_reasoning = base_rec.reasoning if base_rec.reasoning else "Base recommendation"
@@ -394,3 +444,71 @@ def create_intelligent_agent(preference_storage_path: Optional[str] = None) -> T
     tool_selector = PersonalizedToolSelector(preference_engine)
     
     return tool_selector, preference_engine
+
+    def _apply_personalization(self, tool_name: str, base_score, user_id: str, 
+                             intent: str, context_info) -> PersonalizedRecommendation:
+        """Apply user preferences to modify tool scores"""
+        
+        # Start with base score
+        personalized_score = base_score.total_score
+        personalization_factors = []
+        
+        # Get user preferences
+        user_prefs = self.preference_engine.get_user_preferences(user_id)
+        
+        # Factor 1: Tool preference history
+        preferred_tools = user_prefs.get("preferred_tools", [])
+        if tool_name in preferred_tools:
+            tool_boost = 0.3
+            personalized_score += tool_boost
+            personalization_factors.append(f"preferred_tool(+{tool_boost:.2f})")
+        
+        # Factor 2: Domain interest matching
+        domain_interests = user_prefs.get("domain_interests", [])
+        tool_info = self.discovery.get_tool_info(tool_name)
+        tool_category = tool_info.get("category", "")
+        
+        domain_match = any(domain in tool_category for domain in domain_interests)
+        if domain_match:
+            domain_boost = 0.2
+            personalized_score += domain_boost
+            personalization_factors.append(f"domain_match(+{domain_boost:.2f})")
+        
+        # Factor 3: Execution style preferences
+        execution_style = user_prefs.get("execution_style", "balanced")
+        if execution_style == "thorough" and "test" in tool_name:
+            style_boost = 0.15
+            personalized_score += style_boost
+            personalization_factors.append(f"thorough_style(+{style_boost:.2f})")
+        elif execution_style == "agile" and any(word in tool_name for word in ["quick", "fast", "simple"]):
+            style_boost = 0.15
+            personalized_score += style_boost
+            personalization_factors.append(f"agile_style(+{style_boost:.2f})")
+        
+        # Factor 4: Speed vs accuracy preference
+        speed_pref = user_prefs.get("speed_vs_accuracy", "balanced")
+        if speed_pref == "speed" and "fast" in tool_name.lower():
+            speed_boost = 0.1
+            personalized_score += speed_boost
+            personalization_factors.append(f"speed_pref(+{speed_boost:.2f})")
+        elif speed_pref == "accuracy" and any(word in tool_name.lower() for word in ["accurate", "precise", "thorough"]):
+            accuracy_boost = 0.1
+            personalized_score += accuracy_boost
+            personalization_factors.append(f"accuracy_pref(+{accuracy_boost:.2f})")
+        
+        # Calculate final personalization score
+        base_weight = 1.0 - self.personalization_weight
+        final_score = (base_score.total_score * base_weight + 
+                      personalized_score * self.personalization_weight)
+        
+        # Generate reasoning
+        reasoning = self._generate_personalized_reasoning(tool_name, base_score, personalization_factors)
+        
+        return PersonalizedRecommendation(
+            tool_name=tool_name,
+            total_score=final_score,
+            confidence=base_score.confidence,
+            reasoning=reasoning,
+            personalization_score=personalized_score - base_score.total_score,
+            personalization_factors=personalization_factors
+        )
