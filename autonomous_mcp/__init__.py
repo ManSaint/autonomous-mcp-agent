@@ -27,6 +27,20 @@ from .executor import (
     ExecutionState
 )
 
+from .smart_selector import (
+    SmartToolSelector,
+    SelectionStrategy,
+    ToolScore
+)
+
+from .user_preferences import (
+    UserPreferenceEngine,
+    UserProfile,
+    PreferenceType,
+    FeedbackType,
+    PreferenceItem
+)
+
 __all__ = [
     # Discovery
     'ToolCapability',
@@ -47,5 +61,17 @@ __all__ = [
     'ChainExecutor',
     'ExecutionStatus',
     'ExecutionResult',
-    'ExecutionState'
+    'ExecutionState',
+    
+    # Smart Selector
+    'SmartToolSelector',
+    'SelectionStrategy',
+    'ToolScore',
+    
+    # User Preferences
+    'UserPreferenceEngine',
+    'UserProfile',
+    'PreferenceType',
+    'FeedbackType',
+    'PreferenceItem'
 ]
