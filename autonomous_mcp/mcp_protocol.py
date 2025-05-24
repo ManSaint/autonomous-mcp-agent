@@ -491,19 +491,33 @@ class MCPProtocolBridge:
                 context=context or {}
             )
             
-            # Execute plan with monitoring
+            # Use the real MCP chain executor instead of basic executor
+            from .mcp_chain_executor import RealMCPChainExecutor
+            real_executor = RealMCPChainExecutor()
+            
+            # Convert plan to chain steps format
+            chain_steps = []
+            for tool_call in plan.tools:
+                chain_steps.append({
+                    'tool_name': tool_call.tool_name,
+                    'parameters': tool_call.parameters,
+                    'order': tool_call.order
+                })
+            
+            # Execute chain with monitoring
             with self.monitoring.time_operation("autonomous_execution"):
-                result = await self.executor.execute_plan(plan)
+                result = real_executor.execute_chain(chain_steps, initial_input=task_description)
             
             return {
-                'success': True,
+                'success': result.success,
                 'task': task_description,
-                'execution_plan': plan.to_dict() if hasattr(plan, 'to_dict') else str(plan),
-                'result': result,
+                'execution_plan': [step for step in chain_steps],
+                'result': result.results,
+                'error_message': result.error_message,
                 'metrics': {
-                    'tools_used': len(plan.tool_calls) if hasattr(plan, 'tool_calls') else 0,
-                    'execution_time': result.get('execution_time', 0),
-                    'success_rate': result.get('success_rate', 0)
+                    'execution_time': result.execution_time,
+                    'steps_completed': len(result.step_results) if result.step_results else 0,
+                    'performance_metrics': result.performance_metrics
                 }
             }
             
@@ -520,8 +534,22 @@ class MCPProtocolBridge:
                             include_performance: bool = False) -> Dict[str, Any]:
         """Discover available tools with intelligent filtering"""
         try:
-            # Refresh tool discovery
-            discovered_tools = self.discovery.discover_tools()
+            # Refresh tool discovery - get all tools and convert to the expected format
+            discovered_tools_dict = self.discovery.discovered_tools
+            
+            # Convert DiscoveredTool objects to dictionary format for filtering
+            discovered_tools = {}
+            for name, tool in discovered_tools_dict.items():
+                discovered_tools[name] = {
+                    'description': tool.description,
+                    'categories': [cap.category for cap in tool.capabilities],
+                    'capabilities': [cap.subcategory for cap in tool.capabilities],
+                    'server': tool.server,
+                    'parameters': tool.parameters,
+                    'usage_count': tool.usage_count,
+                    'success_rate': tool.success_rate,
+                    'average_execution_time': tool.average_execution_time
+                }
             
             # Apply filters
             filtered_tools = discovered_tools
@@ -662,7 +690,14 @@ class MCPProtocolBridge:
             
         except Exception as e:
             logger.error(f"Performance monitoring failed: {e}")
-            return {'success': False, 'error': str(e)}
+            return {
+                'success': False, 
+                'error': str(e),
+                'basic_metrics': {
+                    'status': 'monitoring_unavailable',
+                    'basic_health': 'ok'
+                }
+            }
     
     async def _configure_agent_preferences(self, preferences: Dict[str, Any], operation: str = "update",
                                          validate_preferences: bool = True) -> Dict[str, Any]:

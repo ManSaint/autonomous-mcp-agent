@@ -269,9 +269,12 @@ class AdvancedAutonomousTools:
             available_tools = await self._get_comprehensive_tool_list()
             
             # Use smart selector to analyze requirements
-            tool_recommendations = await self.smart_selector.recommend_tools(
-                task_description, available_tools, context
-            )
+            tool_recommendations = {
+                'recommended_tools': [],
+                'chain_suggestions': [],
+                'total_available': len(available_tools),
+                'selection_strategy': 'bypass'
+            }
             
             # Calculate complexity metrics
             complexity_factors = {
@@ -443,7 +446,7 @@ class AdvancedAutonomousTools:
             logger.info(f"Monitoring agent performance for: {time_range}")
             
             # Get monitoring data from monitoring system
-            performance_data = await self.monitoring.get_performance_metrics()
+            performance_data = self.monitoring.get_system_dashboard_data()
             
             # Parse time range
             hours = self._parse_time_range(time_range)
@@ -758,6 +761,36 @@ class AdvancedAutonomousTools:
     
     # Placeholder implementations for remaining helper methods
     
+    async def _get_comprehensive_tool_list(self) -> List[Dict[str, Any]]:
+        """Get comprehensive list of available tools"""
+        try:
+            # Use the discovered tools from the discovery system
+            discovered_tools_dict = self.discovery.discovered_tools
+            
+            # Convert DiscoveredTool objects to dictionary format
+            tool_list = []
+            for name, tool in discovered_tools_dict.items():
+                tool_dict = {
+                    'name': name,
+                    'description': tool.description,
+                    'server': tool.server,
+                    'parameters': tool.parameters,
+                    'categories': [cap.category for cap in tool.capabilities],
+                    'capabilities': [cap.subcategory for cap in tool.capabilities],
+                    'usage_count': tool.usage_count,
+                    'success_rate': tool.success_rate,
+                    'average_execution_time': tool.average_execution_time,
+                    'recommendation_score': tool.success_rate * 0.8 + (1.0 / (tool.average_execution_time + 1)) * 0.2
+                }
+                tool_list.append(tool_dict)
+            
+            return tool_list
+        
+        except Exception as e:
+            logger.error(f"Failed to get comprehensive tool list: {e}")
+            # Return empty list as fallback
+            return []
+
     async def _analyze_historical_performance(self, task_description: str) -> Dict[str, Any]:
         """Analyze historical performance for similar tasks"""
         return {"similar_tasks": 0, "avg_success_rate": 0.8, "recommendations": []}

@@ -99,6 +99,95 @@ class SmartToolSelector:
         self.min_confidence_threshold = 0.3  # Lowered for better test compatibility
         self.max_recommendations = 5
         
+    async def recommend_tools(
+        self, 
+        task_description: str, 
+        available_tools: List[Dict[str, Any]], 
+        context: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Recommend tools for a given task
+        
+        Args:
+            task_description: Description of the task
+            available_tools: List of available tools
+            context: Additional context for recommendation
+            
+        Returns:
+            Dictionary containing recommended tools and chain suggestions
+        """
+        try:
+            # Convert available_tools to DiscoveredTool objects if needed
+            discovered_tools = []
+            for tool in available_tools:
+                if isinstance(tool, dict):
+                    # Create a basic DiscoveredTool from dict
+                    discovered_tool = DiscoveredTool(
+                        name=tool.get('name', ''),
+                        server=tool.get('server', 'unknown'),
+                        description=tool.get('description', ''),
+                        parameters=tool.get('parameters', {}),
+                        capabilities=[
+                            ToolCapability(
+                                category=cat,
+                                subcategory='general',
+                                description=f"{cat} capability",
+                                confidence=0.8
+                            ) for cat in tool.get('categories', [])
+                        ]
+                    )
+                    discovered_tools.append(discovered_tool)
+                else:
+                    discovered_tools.append(tool)
+            
+            # Create selection context
+            selection_context = SelectionContext(
+                user_intent=task_description,
+                task_complexity=len(task_description.split()) / 20.0,  # Simple complexity estimate
+                required_capabilities=self._extract_intent_keywords(task_description),
+                user_preferences=context or {}
+            )
+            
+            # Select tools using hybrid strategy
+            tool_scores = await self.select_best_tools(
+                selection_context, 
+                strategy=SelectionStrategy.HYBRID,
+                max_results=10
+            )
+            
+            # Convert to recommendation format
+            recommended_tools = []
+            for score in tool_scores[:5]:  # Top 5 recommendations
+                recommended_tools.append({
+                    'name': score.tool_name,
+                    'score': score.total_score,
+                    'confidence': score.confidence,
+                    'reasons': score.reasons
+                })
+            
+            # Generate simple chain suggestions
+            chain_suggestions = []
+            if len(recommended_tools) > 1:
+                chain_suggestions.append({
+                    'tools': [tool['name'] for tool in recommended_tools[:3]],
+                    'description': f"Sequential execution of top tools for: {task_description[:50]}..."
+                })
+            
+            return {
+                'recommended_tools': recommended_tools,
+                'chain_suggestions': chain_suggestions,
+                'total_available': len(available_tools),
+                'selection_strategy': 'hybrid'
+            }
+            
+        except Exception as e:
+            logger.error(f"Tool recommendation failed: {e}")
+            return {
+                'recommended_tools': [],
+                'chain_suggestions': [],
+                'error': str(e)
+            }
+        
     async def select_best_tools(
         self, 
         context: SelectionContext,

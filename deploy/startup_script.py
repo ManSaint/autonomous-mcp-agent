@@ -77,7 +77,7 @@ class ProductionServerManager:
         try:
             import mcp
             from autonomous_mcp import discovery, executor, planner
-            self.logger.info("✓ All required dependencies available")
+            self.logger.info("[OK] All required dependencies available")
         except ImportError as e:
             self.logger.error(f"Missing required dependency: {e}")
             return False
@@ -97,12 +97,12 @@ class ProductionServerManager:
                 self.logger.error("Invalid server configuration")
                 return False
                 
-            self.logger.info("✓ Configuration validated")
+            self.logger.info("[OK] Configuration validated")
         except Exception as e:
             self.logger.error(f"Configuration validation failed: {e}")
             return False
             
-        self.logger.info("✓ Environment validation complete")
+        self.logger.info("[OK] Environment validation complete")
         return True
         
     def start_server(self) -> bool:
@@ -134,7 +134,7 @@ class ProductionServerManager:
             
             # Check if process is still running
             if self.server_process.poll() is None:
-                self.logger.info(f"✓ Server started successfully (PID: {self.server_process.pid})")
+                self.logger.info(f"[OK] Server started successfully (PID: {self.server_process.pid})")
                 return True
             else:
                 stdout, stderr = self.server_process.communicate()
@@ -166,7 +166,7 @@ class ProductionServerManager:
                     break
                     
                 # Performance metrics
-                metrics = self.monitoring_system.get_metrics()
+                metrics = self.monitoring_system.get_system_dashboard_data()
                 if metrics:
                     self.logger.info(f"Performance: Active metrics: {len(metrics)}")
                 
