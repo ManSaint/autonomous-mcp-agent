@@ -396,6 +396,49 @@ class UserPreferenceEngine:
         
         return exec_prefs
     
+    def get_preferences(self) -> Dict[str, Any]:
+        """
+        Get all user preferences as a unified dictionary.
+        
+        Returns:
+            Dict containing all user preferences (tools, domains, execution, etc.)
+        """
+        profile = self.get_current_profile()
+        if not profile:
+            return {
+                'preferred_tools': {},
+                'avoided_tools': {},
+                'domain_interests': {},
+                'execution_preferences': {
+                    'prefer_speed': False,
+                    'complexity_tolerance': 0.5,
+                    'parallel_execution': True,
+                    'detailed_feedback': True
+                },
+                'privacy_settings': {
+                    'share_usage_data': False,
+                    'store_preferences': True,
+                    'anonymize_feedback': True
+                }
+            }
+        
+        # Combine all preference types into unified dict
+        all_preferences = {
+            'preferred_tools': profile.preferred_tools.copy(),  # Get all stored tool preferences
+            'domain_interests': self.get_domain_interests(),
+            'execution_preferences': self.get_execution_preferences(),
+            'privacy_settings': profile.privacy_settings.copy()
+        }
+        
+        # Extract avoided tools (tools with negative preference scores)
+        avoided_tools = {tool: abs(score) for tool, score in all_preferences['preferred_tools'].items() if score < 0}
+        preferred_tools = {tool: score for tool, score in all_preferences['preferred_tools'].items() if score >= 0}
+        
+        all_preferences['preferred_tools'] = preferred_tools
+        all_preferences['avoided_tools'] = avoided_tools
+        
+        return all_preferences
+    
     def provide_feedback(self, preference_key: str, feedback: FeedbackType, 
                         impact: float = 0.1):
         """
@@ -565,6 +608,130 @@ class UserPreferenceEngine:
             })
         
         return stats
+    
+    def reset_preferences(self) -> Dict[str, Any]:
+        """
+        Reset current user's preferences to defaults.
+        
+        Returns:
+            Dict containing reset result and new default preferences
+        """
+        profile = self.get_current_profile()
+        if not profile:
+            return {
+                'success': False,
+                'error': 'No current user profile found',
+                'preferences': {}
+            }
+        
+        try:
+            # Clear all preferences
+            profile.preferences.clear()
+            profile.preferred_tools.clear()
+            profile.domain_interests.clear()
+            profile.execution_preferences.clear()
+            
+            # Reset to default privacy settings
+            profile.privacy_settings = {
+                'share_usage_data': False,
+                'store_preferences': True,
+                'anonymize_feedback': True,
+                'data_retention_days': 365
+            }
+            
+            # Save changes
+            self._save_profiles()
+            
+            logger.info(f"Reset preferences for user {self.current_user_id}")
+            return {
+                'success': True,
+                'message': 'Preferences reset to defaults',
+                'preferences': self.get_preferences()
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to reset preferences: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'preferences': {}
+            }
+    
+    def update_preferences(self, preferences: Dict[str, Any], merge: bool = True) -> Dict[str, Any]:
+        """
+        Update current user's preferences.
+        
+        Args:
+            preferences: Dictionary of preferences to update
+            merge: If True, merge with existing preferences; if False, replace them
+            
+        Returns:
+            Dict containing update result
+        """
+        profile = self.get_current_profile()
+        if not profile:
+            return {
+                'success': False,
+                'error': 'No current user profile found'
+            }
+        
+        try:
+            if not merge:
+                # Replace mode: clear existing preferences first
+                profile.preferences.clear()
+                profile.preferred_tools.clear()
+                profile.domain_interests.clear()
+                profile.execution_preferences.clear()
+            
+            # Update tool preferences
+            if 'preferred_tools' in preferences:
+                for tool, score in preferences['preferred_tools'].items():
+                    profile.update_tool_preference(tool, score if merge else score)
+            
+            if 'avoided_tools' in preferences:
+                for tool, score in preferences['avoided_tools'].items():
+                    # Store avoided tools as negative preferences
+                    profile.update_tool_preference(tool, -abs(score) if merge else -abs(score))
+            
+            # Update domain interests
+            if 'domain_interests' in preferences:
+                for domain, interest in preferences['domain_interests'].items():
+                    profile.update_domain_interest(domain, interest if merge else interest)
+            
+            # Update execution preferences
+            if 'execution_preferences' in preferences:
+                if merge:
+                    profile.execution_preferences.update(preferences['execution_preferences'])
+                else:
+                    profile.execution_preferences = preferences['execution_preferences'].copy()
+            
+            # Update privacy settings
+            if 'privacy_settings' in preferences:
+                if merge:
+                    profile.privacy_settings.update(preferences['privacy_settings'])
+                else:
+                    profile.privacy_settings = preferences['privacy_settings'].copy()
+            
+            # Update last activity
+            profile.last_activity = time.time()
+            
+            # Save changes
+            self._save_profiles()
+            
+            action = "merged" if merge else "replaced"
+            logger.info(f"Successfully {action} preferences for user {self.current_user_id}")
+            return {
+                'success': True,
+                'message': f'Preferences {action} successfully',
+                'preferences': self.get_preferences()
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to update preferences: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
     
     def _load_profiles(self):
         """Load user profiles from storage."""
