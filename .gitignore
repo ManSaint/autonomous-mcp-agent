@@ -67,3 +67,12 @@ Thumbs.db
 *.json
 !examples/*.json
 .mcp_cache/
+
+# Development files
+archive/
+debug_*.py
+test_*_simple.py
+*_demo.py
+*_temp.py
+temp_*
+scratch_*
