@@ -59,7 +59,9 @@ python -m pytest tests/ -v         # All unit tests
 ### 📝 **Session Protocol**
 1. **Start**: Navigate to D:\Development\Autonomous-MCP-Agent
 2. **Check**: git status, PROJECT_STATUS.md for next task
-3. **End**: git add . && git commit -m "description" && git push origin main
+3. **During**: Work in correct directory, test changes
+4. **End**: git add . && git commit -m "description" && git push origin main
+5. **Update**: If major milestone reached, update PROJECT_STATUS.md and this knowledge file
 
 **That's it!** As long as you're in the right folder, git works normally.
 
