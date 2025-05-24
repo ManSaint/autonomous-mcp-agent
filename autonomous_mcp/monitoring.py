@@ -935,9 +935,9 @@ class MonitoringSystem:
     
     def integrate_with_error_recovery(self, error_recovery: ErrorRecoverySystem):
         """Integrate monitoring with error recovery system"""
-        original_handle = error_recovery.handle_error
+        original_attempt_recovery = error_recovery.attempt_recovery
         
-        async def monitored_handle(error_context, *args, **kwargs):
+        async def monitored_attempt_recovery(error_context, original_action, *args, **kwargs):
             # Track error occurrence
             self.increment_counter("errors_handled", tags={
                 'category': error_context.category.value,
@@ -945,10 +945,10 @@ class MonitoringSystem:
             })
             
             with self.time_operation("error_recovery"):
-                result = await original_handle(error_context, *args, **kwargs)
+                success, result, new_error_context = await original_attempt_recovery(error_context, original_action, *args, **kwargs)
                 
                 # Track recovery success/failure
-                if result and result.get('recovered', False):
+                if success:
                     self.increment_counter("error_recovery_success", tags={
                         'category': error_context.category.value
                     })
@@ -957,9 +957,9 @@ class MonitoringSystem:
                         'category': error_context.category.value
                     })
                 
-                return result
+                return success, result, new_error_context
         
-        error_recovery.handle_error = monitored_handle
+        error_recovery.attempt_recovery = monitored_attempt_recovery
         self.update_component_health("error_recovery", ComponentHealth.HEALTHY,
                                    "Error recovery monitoring integration active")
     
