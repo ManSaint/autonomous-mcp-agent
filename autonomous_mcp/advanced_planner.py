@@ -15,6 +15,7 @@ from datetime import datetime
 import logging
 
 from .planner import BasicExecutionPlanner, ToolCall, ExecutionPlan
+from .smart_selector import SmartToolSelector, SelectionContext, SelectionStrategy, ToolScore
 
 logger = logging.getLogger(__name__)
 
@@ -68,16 +69,18 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
     and dynamic plan adaptation for complex user intents.
     """
     
-    def __init__(self, discovery_system=None, sequential_thinking_tool=None):
+    def __init__(self, discovery_system=None, sequential_thinking_tool=None, smart_selector=None):
         """
         Initialize the advanced planner
         
         Args:
             discovery_system: Instance of ToolDiscoverySystem for tool selection
             sequential_thinking_tool: Function to call sequential thinking tool
+            smart_selector: SmartToolSelector instance for intelligent tool selection
         """
         super().__init__(discovery_system)
         self.sequential_thinking_tool = sequential_thinking_tool
+        self.smart_selector = smart_selector or (SmartToolSelector(discovery_system) if discovery_system else None)
         self.complexity_threshold = 0.6  # Above this, use sequential thinking
         self.reasoning_timeout = 30.0  # Max time for reasoning process
         
@@ -283,7 +286,7 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
             )
     
     async def _reason_about_tool_selection(self, subtasks: str, intent: str, context: Dict[str, Any]) -> ReasoningStep:
-        """Use sequential thinking to select optimal tools"""
+        """Use smart tool selection combined with sequential thinking for optimal tool choice"""
         if not self.discovery:
             return ReasoningStep(
                 step_number=2,
@@ -292,7 +295,59 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
                 confidence=0.2
             )
         
-        # Get available tools
+        # Use Smart Tool Selector if available
+        if self.smart_selector:
+            try:
+                # Create selection context
+                selection_context = SelectionContext(
+                    user_intent=intent,
+                    task_complexity=self._calculate_complexity_score(intent),
+                    required_capabilities=self._extract_capabilities_from_intent(intent),
+                    previous_tools=context.get('previous_tools', []) if context else []
+                )
+                
+                # Get smart tool recommendations
+                tool_scores = await self.smart_selector.select_best_tools(
+                    selection_context,
+                    strategy=SelectionStrategy.HYBRID,
+                    max_results=8
+                )
+                
+                if tool_scores:
+                    # Use sequential thinking to reason about the recommended tools
+                    tool_descriptions = [
+                        f"{score.tool_name}: Score {score.total_score:.2f}, {', '.join(score.reasons[:2])}"
+                        for score in tool_scores
+                    ]
+                    
+                    reasoning_prompt = f"""
+                    Based on these subtasks: {subtasks}
+                    
+                    Smart-recommended tools (with AI scoring):
+                    {chr(10).join(tool_descriptions)}
+                    
+                    Which combination of these AI-recommended tools would be most effective?
+                    Consider the AI confidence scores and how tools chain together for the subtasks.
+                    """
+                    
+                    result = await self._call_sequential_thinking(reasoning_prompt, 3)
+                    
+                    return ReasoningStep(
+                        step_number=2,
+                        thought=f"Smart selector recommended {len(tool_scores)} tools. {reasoning_prompt[:100]}...",
+                        conclusion=result.get('final_thought', 'Use smart-recommended tools in sequence'),
+                        confidence=0.85,
+                        metadata={
+                            'reasoning_result': result, 
+                            'smart_recommendations': [(s.tool_name, s.total_score) for s in tool_scores],
+                            'selection_strategy': 'smart_hybrid'
+                        }
+                    )
+                
+            except Exception as e:
+                logger.warning(f"Smart tool selection failed, falling back to basic: {e}")
+        
+        # Fallback to basic tool discovery
         available_tools = self.discovery.get_tools_for_intent(intent)
         tool_descriptions = [
             f"{tool.name}: {tool.description if hasattr(tool, 'description') else 'No description'}"
@@ -607,6 +662,33 @@ class AdvancedExecutionPlanner(BasicExecutionPlanner):
         )
         
         return adapted_plan
+    
+    def _extract_capabilities_from_intent(self, intent: str) -> List[str]:
+        """Extract required capabilities from user intent"""
+        capabilities = []
+        intent_lower = intent.lower()
+        
+        # Map intent keywords to capabilities
+        capability_mapping = {
+            'search': ['web', 'search', 'information'],
+            'analyze': ['data', 'analysis', 'processing'],
+            'read': ['file', 'read', 'data'],
+            'write': ['file', 'write', 'storage'],
+            'create': ['creation', 'generation'],
+            'research': ['web', 'search', 'research'],
+            'process': ['data', 'processing'],
+            'generate': ['creative', 'generation'],
+            'reason': ['reasoning', 'ai'],
+            'download': ['web', 'fetch'],
+            'upload': ['file', 'storage'],
+            'execute': ['execution', 'runtime']
+        }
+        
+        for keyword, caps in capability_mapping.items():
+            if keyword in intent_lower:
+                capabilities.extend(caps)
+        
+        return list(set(capabilities))  # Remove duplicates
 
 
 # Example usage
