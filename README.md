@@ -33,6 +33,58 @@ An intelligent, autonomous agent that discovers, plans, and executes MCP (Model 
 - **State Tracking**: Complete execution monitoring and performance analytics
 - **Enterprise Ready**: Robust dependency resolution and timeout handling
 
+## 🚀 **How to Use**
+
+### **📖 Complete Instructions**
+- **🏃‍♂️ [Quick Start Guide](QUICK_START.md)** - Get running in 5 minutes
+- **📚 [Complete User Guide](USER_GUIDE.md)** - Comprehensive instructions and examples
+- **🔧 [Troubleshooting](USER_GUIDE.md#troubleshooting)** - Common issues and solutions
+
+### **⚡ Quick Setup**
+```bash
+# 1. Clone repository
+git clone https://github.com/ManSaint/autonomous-mcp-agent.git
+cd autonomous-mcp-agent
+
+# 2. Install dependencies  
+pip install -r requirements.txt && pip install -r requirements_mcp.txt
+
+# 3. Configure Claude Desktop
+python deploy/startup_script.py
+
+# 4. Restart Claude Desktop - Ready to use!
+```
+
+### **🎯 Available Tools**
+**7 Autonomous Agent Tools**:
+- `execute_autonomous_task` - Complex task automation with AI planning
+- `discover_available_tools` - Intelligent tool discovery and categorization  
+- `create_intelligent_workflow` - Advanced workflow generation
+- `analyze_task_complexity` - Task analysis and recommendations
+- `get_personalized_recommendations` - ML-powered suggestions
+- `monitor_agent_performance` - Real-time performance tracking
+- `configure_agent_preferences` - User personalization settings
+
+**Plus 9+ Real MCP Tools** automatically discovered and integrated!
+
+### **💡 Example Usage**
+```
+"Execute autonomous task: Research Python best practices and create a summary"
+"Create workflow for: Search GitHub repos, analyze code, generate report" 
+"Discover available tools for web development"
+"Monitor agent performance for the last 24 hours"
+```
+
+### **⛓️ Advanced: MCP Chain Workflows**
+```json
+{
+  "mcpPath": [
+    {"toolName": "brave_web_search", "toolArgs": "{\"query\": \"AI research 2024\"}"},
+    {"toolName": "analyze_task_complexity", "toolArgs": "{\"task_description\": \"CHAIN_RESULT\", \"context\": {}}", "inputPath": "$.results[0].title"}
+  ]
+}
+```
+
 ## 🏗️ Architecture
 
 ```
