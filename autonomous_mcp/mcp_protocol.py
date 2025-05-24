@@ -74,22 +74,18 @@ class MCPProtocolBridge:
     def _initialize_framework(self):
         """Initialize the autonomous agent framework components"""
         try:
-            # Initialize monitoring system
-            self.monitoring.start_monitoring()
+            # Initialize monitoring system (it starts automatically in __init__)
+            logger.info("Monitoring system ready")
             
-            # Load user preferences if they exist
-            try:
-                self.preferences.load_preferences()
-                logger.info("User preferences loaded successfully")
-            except FileNotFoundError:
-                logger.info("No existing preferences found, using defaults")
+            # Initialize user preferences (loads automatically in __init__)
+            logger.info("User preferences initialized")
             
             # Initialize tool discovery
-            self.discovery.discover_tools()
-            logger.info(f"Discovered {len(self.discovery.tools)} tools")
+            # Note: Tool discovery will happen automatically when tools are requested
+            logger.info("Tool discovery system ready")
             
-            # Set up error recovery
-            self.error_recovery.initialize_recovery_system()
+            # Set up error recovery (initializes automatically in __init__)
+            logger.info("Error recovery system ready")
             
             logger.info("Framework components initialized successfully")
             
@@ -125,22 +121,18 @@ class MCPProtocolBridge:
     def _initialize_framework(self):
         """Initialize the autonomous agent framework components"""
         try:
-            # Initialize monitoring system
-            self.monitoring.start_monitoring()
+            # Initialize monitoring system (it starts automatically in __init__)
+            logger.info("Monitoring system ready")
             
-            # Load user preferences if they exist
-            try:
-                self.preferences.load_preferences()
-                logger.info("User preferences loaded successfully")
-            except FileNotFoundError:
-                logger.info("No existing preferences found, using defaults")
+            # Initialize user preferences (loads automatically in __init__)
+            logger.info("User preferences initialized")
             
             # Initialize tool discovery
-            self.discovery.discover_tools()
-            logger.info(f"Discovered {len(self.discovery.tools)} tools")
+            # Note: Tool discovery will happen automatically when tools are requested
+            logger.info("Tool discovery system ready")
             
-            # Set up error recovery
-            self.error_recovery.initialize_recovery_system()
+            # Set up error recovery (initializes automatically in __init__)
+            logger.info("Error recovery system ready")
             
             logger.info("Framework components initialized successfully")
             
