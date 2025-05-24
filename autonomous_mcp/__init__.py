@@ -14,6 +14,12 @@ from .planner import (
     BasicExecutionPlanner
 )
 
+from .advanced_planner import (
+    AdvancedExecutionPlanner,
+    EnhancedExecutionPlan,
+    ReasoningStep
+)
+
 from .executor import (
     ChainExecutor,
     ExecutionStatus,
@@ -31,6 +37,11 @@ __all__ = [
     'ToolCall',
     'ExecutionPlan',
     'BasicExecutionPlanner',
+    
+    # Advanced Planner
+    'AdvancedExecutionPlanner',
+    'EnhancedExecutionPlan',
+    'ReasoningStep',
     
     # Executor
     'ChainExecutor',
