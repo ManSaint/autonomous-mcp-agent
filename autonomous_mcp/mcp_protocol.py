@@ -25,6 +25,7 @@ from .advanced_planner import AdvancedExecutionPlanner
 from .error_recovery import ErrorRecoverySystem
 from .monitoring import MonitoringSystem
 from .user_preferences import UserPreferenceEngine
+from .proxy_workflow_executor import ProxyWorkflowExecutor
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -57,6 +58,8 @@ class MCPProtocolBridge:
         self.planner = AdvancedExecutionPlanner(self.real_discovery)
         self.error_recovery = ErrorRecoverySystem()
         self.monitoring = MonitoringSystem()
+        # ✅ Phase 6.3: Add proxy workflow executor
+        self.proxy_workflow_executor = ProxyWorkflowExecutor()
         self.preferences = UserPreferenceEngine()
         
         # Tool registry for MCP tools
@@ -72,6 +75,7 @@ class MCPProtocolBridge:
         
         # Initialize framework components
         self._initialize_framework()
+        self._setup_proxy_executor()  # Initialize proxy executor for external tools
         self._register_core_tools()
         
     def _initialize_framework(self):
@@ -96,32 +100,11 @@ class MCPProtocolBridge:
             logger.error(f"Failed to initialize framework: {e}")
             raise
     
-    def __init__(self):
-        """Initialize the MCP protocol bridge"""
-        self.server = Server("autonomous-mcp-agent")
-        # Use real discovery for actual MCP tools
-        self.real_discovery = RealMCPDiscovery()
-        self.discovery = self.real_discovery  # For compatibility
-        self.executor = ChainExecutor()
-        self.planner = AdvancedExecutionPlanner(self.real_discovery)
-        self.error_recovery = ErrorRecoverySystem()
-        self.monitoring = MonitoringSystem()
-        self.preferences = UserPreferenceEngine()
-        
-        # Tool registry for MCP tools
-        self.mcp_tools: Dict[str, MCPToolDefinition] = {}
-        
-        # Performance tracking
-        self.execution_stats = {
-            'total_requests': 0,
-            'successful_executions': 0,
-            'failed_executions': 0,
-            'average_response_time': 0.0
-        }
-        
-        # Initialize framework components
-        self._initialize_framework()
-        self._register_core_tools()
+    def _setup_proxy_executor(self):
+        """Initialize proxy executor for external MCP tools"""
+        from .proxy_executor import ProxyExecutor
+        self.proxy_executor = ProxyExecutor()
+        logger.info("Proxy executor initialized for external MCP tool integration")
         
     def _initialize_framework(self):
         """Initialize the autonomous agent framework components"""
@@ -355,6 +338,80 @@ class MCPProtocolBridge:
             function=self._configure_agent_preferences
         )
         
+        # ✅ PHASE 6.3: HYBRID WORKFLOW EXECUTION TOOLS
+        
+        # 8. Execute hybrid workflow
+        self._register_tool(
+            name="execute_hybrid_workflow",
+            description="Execute workflow with both internal autonomous and external proxy tools",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the workflow to execute"
+                    },
+                    "steps": {
+                        "type": "array",
+                        "description": "List of workflow steps with tool calls",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "tool": {"type": "string"},
+                                "description": {"type": "string"},
+                                "parameters": {"type": "object"},
+                                "dependencies": {"type": "array", "items": {"type": "string"}}
+                            },
+                            "required": ["tool", "parameters"]
+                        }
+                    },
+                    "context": {
+                        "type": "object",
+                        "description": "Additional context for workflow execution",
+                        "default": {}
+                    },
+                    "optimize_workflow": {
+                        "type": "boolean",
+                        "description": "Whether to optimize workflow before execution",
+                        "default": True
+                    }
+                },
+                "required": ["description", "steps"]
+            },
+            function=self._execute_hybrid_workflow
+        )
+        
+        # 9. Execute tool chain
+        self._register_tool(
+            name="execute_tool_chain",
+            description="Execute a simple chain of tools using hybrid internal/proxy execution",
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "tool_chain": {
+                        "type": "array",
+                        "description": "Ordered list of tools to execute in sequence",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "tool_name": {"type": "string"},
+                                "parameters": {"type": "object"},
+                                "description": {"type": "string"}
+                            },
+                            "required": ["tool_name", "parameters"]
+                        }
+                    },
+                    "optimize_execution": {
+                        "type": "boolean",
+                        "description": "Whether to optimize execution performance",
+                        "default": True
+                    }
+                },
+                "required": ["tool_chain"]
+            },
+            function=self._execute_tool_chain
+        )
+        
         logger.info(f"Registered {len(self.mcp_tools)} autonomous agent tools including advanced capabilities")
     
     def _register_tool(self, name: str, description: str, input_schema: Dict[str, Any], 
@@ -539,21 +596,27 @@ class MCPProtocolBridge:
                             include_performance: bool = False) -> Dict[str, Any]:
         """Discover available tools with intelligent filtering"""
         try:
-            # Refresh tool discovery - get all tools and convert to the expected format
+            # ✅ FIX: Actually call discovery first!
+            self.discovery.discover_all_tools(force_refresh=True)  # This is NOT async
             discovered_tools_dict = self.discovery.discovered_tools
+            
+            # ✅ ENHANCEMENT: Add external tool proxies
+            external_proxies = await self._get_external_tool_proxies()
+            discovered_tools_dict.update(external_proxies)
             
             # Convert DiscoveredTool objects to dictionary format for filtering
             discovered_tools = {}
             for name, tool in discovered_tools_dict.items():
                 discovered_tools[name] = {
-                    'description': tool.description,
-                    'categories': [cap.category for cap in tool.capabilities],
-                    'capabilities': [cap.subcategory for cap in tool.capabilities],
-                    'server': tool.server,
-                    'parameters': tool.parameters,
-                    'usage_count': tool.usage_count,
-                    'success_rate': tool.success_rate,
-                    'average_execution_time': tool.average_execution_time
+                    'description': getattr(tool, 'description', 'No description available'),
+                    'categories': [cap.category for cap in getattr(tool, 'capabilities', [])],
+                    'capabilities': [cap.subcategory for cap in getattr(tool, 'capabilities', [])],
+                    'server': getattr(tool, 'server', 'unknown'),
+                    'parameters': getattr(tool, 'parameters', {}),
+                    'usage_count': getattr(tool, 'usage_count', 0),
+                    'success_rate': getattr(tool, 'success_rate', 1.0),
+                    'average_execution_time': getattr(tool, 'average_execution_time', 0.0),
+                    'is_proxy': getattr(tool, 'is_proxy', False)
                 }
             
             # Apply filters
@@ -577,11 +640,20 @@ class MCPProtocolBridge:
                     'name': name,
                     'description': tool.get('description', 'No description available'),
                     'categories': tool.get('categories', []),
-                    'capabilities': tool.get('capabilities', [])
+                    'capabilities': tool.get('capabilities', []),
+                    'is_proxy': tool.get('is_proxy', False)  # Include proxy flag
                 }
                 
                 if include_performance:
-                    stats = self.discovery.get_tool_stats(name)
+                    if hasattr(self.discovery, 'get_tool_stats'):
+                        stats = self.discovery.get_tool_stats(name)
+                    else:
+                        # Fallback performance stats
+                        stats = {
+                            'usage_count': tool.get('usage_count', 0),
+                            'success_rate': tool.get('success_rate', 1.0),
+                            'average_execution_time': tool.get('average_execution_time', 0.0)
+                        }
                     tool_info['performance'] = stats
                 
                 tools_info[name] = tool_info
@@ -599,6 +671,38 @@ class MCPProtocolBridge:
                 'success': False,
                 'error': str(e)
             }
+    
+    async def _get_external_tool_proxies(self):
+        """Get external tool proxies for Claude Desktop MCP ecosystem integration"""
+        from .external_tool_registry import EXTERNAL_TOOL_REGISTRY
+        from .discovery import DiscoveredTool, ToolCapability
+        
+        external_tools = {}
+        
+        for tool_name, config in EXTERNAL_TOOL_REGISTRY.items():
+            # Create proxy tool as DiscoveredTool object
+            capabilities = [ToolCapability(
+                category=config.get('category', 'external'),
+                subcategory=config.get('subcategory', 'proxy'),
+                description=f"Proxy tool for {config['description']}",
+                confidence=0.9
+            )]
+            
+            proxy_tool = DiscoveredTool(
+                name=tool_name,
+                description=config['description'],
+                parameters=config['parameters'],
+                server=config.get('server', 'external_proxy'),
+                capabilities=capabilities,
+                usage_count=0,
+                success_rate=0.95,  # High success rate for proxy tools
+                average_execution_time=2.0,
+                is_proxy=True  # Mark as proxy tool
+            )
+            
+            external_tools[tool_name] = proxy_tool
+            
+        return external_tools
     
     # Advanced Autonomous Tool Implementations
     
@@ -718,6 +822,71 @@ class MCPProtocolBridge:
             
         except Exception as e:
             logger.error(f"Preference configuration failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    # ✅ PHASE 6.3: PROXY WORKFLOW EXECUTION TOOLS
+    
+    async def _execute_hybrid_workflow(self, description: str, steps: List[Dict[str, Any]], 
+                                     context: Dict[str, Any] = None, 
+                                     optimize_workflow: bool = True) -> Dict[str, Any]:
+        """Execute hybrid workflow with both internal and proxy tools"""
+        try:
+            logger.info(f"Executing hybrid workflow: {description}")
+            
+            # Execute using the enhanced proxy workflow executor
+            result = await self.proxy_workflow_executor.create_and_execute_hybrid_workflow(
+                description, steps, context
+            )
+            
+            return {
+                'success': result.success,
+                'workflow_id': result.workflow_id,
+                'execution_summary': {
+                    'total_steps': result.total_steps,
+                    'completed_steps': result.completed_steps,
+                    'failed_steps': result.failed_steps,
+                    'proxy_steps': result.proxy_steps,
+                    'internal_steps': result.internal_steps,
+                    'total_execution_time': result.total_execution_time
+                },
+                'results': result.results,
+                'errors': result.errors,
+                'performance_metrics': result.performance_metrics,
+                'workflow_type': 'hybrid_proxy_workflow'
+            }
+            
+        except Exception as e:
+            logger.error(f"Hybrid workflow execution failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    async def _execute_tool_chain(self, tool_chain: List[Dict[str, Any]], 
+                                optimize_execution: bool = True) -> Dict[str, Any]:
+        """Execute a simple chain of tools using hybrid executor"""
+        try:
+            logger.info(f"Executing tool chain with {len(tool_chain)} tools")
+            
+            # Execute using the enhanced proxy workflow executor
+            result = await self.proxy_workflow_executor.execute_multi_tool_chain(tool_chain)
+            
+            return {
+                'success': result.success,
+                'workflow_id': result.workflow_id,
+                'chain_summary': {
+                    'total_tools': result.total_steps,
+                    'successful_tools': result.completed_steps,
+                    'failed_tools': result.failed_steps,
+                    'proxy_tools_used': result.proxy_steps,
+                    'internal_tools_used': result.internal_steps,
+                    'total_execution_time': result.total_execution_time
+                },
+                'tool_results': result.results,
+                'errors': result.errors,
+                'performance_metrics': result.performance_metrics,
+                'execution_type': 'hybrid_tool_chain'
+            }
+            
+        except Exception as e:
+            logger.error(f"Tool chain execution failed: {e}")
             return {'success': False, 'error': str(e)}
     
     def get_tool_list(self) -> List[types.Tool]:

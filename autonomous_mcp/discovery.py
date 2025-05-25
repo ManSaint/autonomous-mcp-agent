@@ -38,6 +38,7 @@ class DiscoveredTool:
     average_execution_time: float = 0.0
     last_used: Optional[float] = None
     aliases: List[str] = field(default_factory=list)  # Alternative names for the tool
+    is_proxy: bool = False  # Whether this is a proxy tool that forwards to external MCP server
 
 
 class ToolDiscovery:
