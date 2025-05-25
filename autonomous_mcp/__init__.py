@@ -61,6 +61,36 @@ from .fallback_manager import (
     GracefulDegradationStrategy
 )
 
+# Phase 8: Real MCP Protocol Implementation
+from .real_mcp_client import (
+    RealMCPClient,
+    MCPMessage,
+    MCPInitializeParams,
+    MCPServerCapabilities
+)
+
+from .mcp_client_manager import (
+    RealMCPClientManager,
+    ServerConnectionInfo,
+    ConnectionStatus
+)
+
+from .mcp_protocol_validator import (
+    MCPProtocolValidator,
+    ProtocolValidationResult
+)
+
+from .universal_mcp_adapter import (
+    UniversalMCPAdapter,
+    ServerAdaptation
+)
+
+from .real_mcp_validator import (
+    RealMCPValidator,
+    ValidationReport,
+    ConnectionTest
+)
+
 __all__ = [
     # Discovery
     'ToolCapability',
@@ -111,5 +141,21 @@ __all__ = [
     'FallbackExecutionResult',
     'ToolFallbackStrategy',
     'PlanFallbackStrategy',
-    'GracefulDegradationStrategy'
+    'GracefulDegradationStrategy',
+    
+    # Phase 8: Real MCP Protocol Implementation
+    'RealMCPClient',
+    'MCPMessage',
+    'MCPInitializeParams',
+    'MCPServerCapabilities',
+    'RealMCPClientManager',
+    'ServerConnectionInfo',
+    'ConnectionStatus',
+    'MCPProtocolValidator',
+    'ProtocolValidationResult',
+    'UniversalMCPAdapter',
+    'ServerAdaptation',
+    'RealMCPValidator',
+    'ValidationReport',
+    'ConnectionTest'
 ]
