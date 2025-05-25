@@ -42,6 +42,30 @@ class PerformanceMetrics:
     timestamp: float = field(default_factory=time.time)
 
 
+@dataclass
+class ValidationReport:
+    """Comprehensive validation report"""
+    timestamp: str
+    total_servers_tested: int
+    successful_connections: int
+    failed_connections: int
+    total_tools_discovered: int
+    performance_metrics: List[PerformanceMetrics]
+    connection_results: List[ConnectionTestResult]
+    overall_success_rate: float
+    recommendations: List[str] = field(default_factory=list)
+
+
+@dataclass
+class ConnectionTest:
+    """Test configuration for a server connection"""
+    server_name: str
+    command: List[str]
+    expected_tools: Optional[List[str]] = None
+    timeout: float = 30.0
+    required: bool = True
+
+
 class RealMCPValidator:
     """
     Validate real MCP protocol connections

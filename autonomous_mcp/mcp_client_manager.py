@@ -13,9 +13,19 @@ from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
 from pathlib import Path
 import os
+from enum import Enum
 
 from .real_mcp_client import RealMCPClient
 from .mcp_transport import MCPTransport, TransportConfig
+
+
+class ConnectionStatus(Enum):
+    """MCP server connection status enumeration"""
+    DISCONNECTED = "disconnected"
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    ERROR = "error"
+    RECONNECTING = "reconnecting"
 
 
 @dataclass

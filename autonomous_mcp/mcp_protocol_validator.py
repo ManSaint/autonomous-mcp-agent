@@ -22,6 +22,10 @@ class ValidationResult:
     details: Optional[Dict[str, Any]] = None
 
 
+# Alias for compatibility with __init__.py imports
+ProtocolValidationResult = ValidationResult
+
+
 class MCPProtocolValidator:
     """
     Ensure MCP protocol standard compliance

@@ -22,6 +22,16 @@ class ServerQuirks:
     command_variations: List[str] = field(default_factory=list)
 
 
+@dataclass
+class ServerAdaptation:
+    """Adaptation result for a specific server"""
+    server_name: str
+    adapted_response: Dict[str, Any]
+    adaptations_applied: List[str]
+    quirks_detected: List[str]
+    normalized: bool = True
+
+
 class UniversalMCPAdapter:
     """
     Adapt to any MCP server implementation
