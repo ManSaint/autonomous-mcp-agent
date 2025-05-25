@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "autonomous-mcp-agent": {
+      "command": "python",
+      "args": [
+        "D:\\Development\\Autonomous-MCP-Agent\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "D:\\Development\\Autonomous-MCP-Agent",
+        "MCP_AGENT_LOG_LEVEL": "INFO",
+        "MCP_AGENT_CONFIG_PATH": "D:\\Development\\Autonomous-MCP-Agent\\user_preferences.json"
+      }
+    }
+  },
+  "preferences": {
+    "autoDiscovery": true,
+    "toolChainingEnabled": true,
+    "performanceMonitoring": true,
+    "adaptiveLearning": true
+  },
+  "development": {
+    "logPath": "D:\\Development\\Autonomous-MCP-Agent\\logs",
+    "debugMode": false,
+    "testMode": false
+  },
+  "production": {
+    "maxConcurrentTasks": 5,
+    "taskTimeout": 300,
+    "retryAttempts": 3,
+    "gracefulShutdown": true
+  }
+}
