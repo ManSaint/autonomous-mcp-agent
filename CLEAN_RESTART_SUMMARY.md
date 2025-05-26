@@ -219,9 +219,12 @@ Follow the detailed rebuild plan:
 **Every phase must:**
 1. ✅ Pass manual testing
 2. ✅ Integrate with existing components
-3. ✅ Update CLEAN_RESTART_SUMMARY.md
-4. ✅ Document limitations honestly
-5. ✅ Commit to git with verification
+3. ✅ **PASS COMPREHENSIVE INTEGRATION TESTING** (see PROJECT_DIRECTORY_PROTOCOL.md)
+4. ✅ Update CLEAN_RESTART_SUMMARY.md
+5. ✅ Document limitations honestly
+6. ✅ Commit to git with verification
+
+**CRITICAL**: See `PROJECT_DIRECTORY_PROTOCOL.md` for complete integration testing requirements.
 
 **Never proceed without complete verification!**
 
