@@ -150,7 +150,7 @@ class RealMCPDiscovery:
     
     def discover_all_tools(self, force_refresh: bool = False) -> Dict[str, MCPTool]:
         """
-        Discover all available MCP tools in the environment
+        Discover all available MCP tools from real external servers
         
         Args:
             force_refresh: Force rediscovery even if cached
@@ -165,15 +165,25 @@ class RealMCPDiscovery:
             self.logger.info("Returning cached tool discovery results")
             return self.tools
             
-        self.logger.info("Starting real-time MCP tool discovery...")
+        self.logger.info("Starting real-time MCP tool discovery from external servers...")
         
         try:
-            # Import the chainable_tools function from the MCP chain system
-            # This gives us access to all available MCP tools
-            from .mcp_chain_executor import get_available_tools
+            # Import the real MCP client
+            from .real_mcp_client_new import get_mcp_client
             
-            # Get all available tools
-            available_tools = get_available_tools()
+            # Get MCP client 
+            mcp_client = get_mcp_client()
+            
+            # Check if we already have connected servers and tools
+            if mcp_client.connected_servers and mcp_client.all_tools:
+                # Use already connected servers and discovered tools
+                all_external_tools = mcp_client.get_all_tools()
+                self.logger.info(f"Using existing connections to {len(mcp_client.connected_servers)} servers with {len(all_external_tools)} tools")
+            else:
+                # No existing connections - try to connect synchronously 
+                # This will work if called from an async context
+                self.logger.info("No existing connections found - external server discovery requires async context")
+                all_external_tools = {}
             
             # Clear existing data
             self.servers.clear()
@@ -181,28 +191,33 @@ class RealMCPDiscovery:
             for cat in self.categories:
                 self.categories[cat].clear()
                 
-            # Process discovered tools
-            for tool_name in available_tools:
-                self._process_discovered_tool(tool_name)
+            # Process discovered tools from external servers
+            for tool_name, tool_info in all_external_tools.items():
+                self._process_external_tool(tool_name, tool_info)
+            
+            # Also include autonomous tools from this framework
+            self._include_autonomous_tools()
                 
             # Update discovery metrics
             discovery_time = time.time() - start_time
             self.discovery_metrics.update({
                 'total_discoveries': len(self.tools),
                 'discovery_time': discovery_time,
-                'tool_availability_rate': len(self.tools) / max(len(available_tools), 1)
+                'external_servers_connected': len(mcp_client.connected_servers),
+                'tool_availability_rate': len(self.tools) / max(len(all_external_tools) + 9, 1)  # +9 for autonomous tools
             })
             
             # Update cache
             self._cache_timestamp = time.time()
             
-            self.logger.info(f"Discovered {len(self.tools)} tools across {len(self.servers)} servers in {discovery_time:.2f}s")
+            self.logger.info(f"Discovered {len(self.tools)} tools across {len(self.servers)} servers (including {len(mcp_client.connected_servers)} external servers) in {discovery_time:.2f}s")
             
             return self.tools
             
         except Exception as e:
-            self.logger.error(f"Error during tool discovery: {e}")
-            return {}
+            self.logger.error(f"Error during external tool discovery: {e}")
+            # Fall back to autonomous tools only
+            return self._discover_autonomous_tools_fallback()
     
     def discover_available_tools(self, force_refresh: bool = False) -> Dict[str, MCPTool]:
         """
@@ -482,3 +497,107 @@ def get_discovery_instance() -> RealMCPDiscovery:
     if _discovery_instance is None:
         _discovery_instance = RealMCPDiscovery()
     return _discovery_instance
+    
+    def _process_external_tool(self, tool_name: str, tool_info: Dict[str, Any]) -> None:
+        """Process a tool discovered from an external MCP server"""
+        try:
+            # Extract server name and tool info
+            server_name = tool_info.get('server', 'unknown')
+            category = self._categorize_tool(tool_name)
+            
+            # Create or update server
+            if server_name not in self.servers:
+                self.servers[server_name] = MCPServer(name=server_name)
+            
+            self.servers[server_name].tools.append(tool_name)
+            
+            # Create tool entry with external server information
+            tool = MCPTool(
+                name=tool_name,
+                server=server_name,
+                category=category,
+                description=tool_info.get('description', self._generate_tool_description(tool_name)),
+                parameters=tool_info.get('inputSchema', {}),
+                complexity_score=self._calculate_complexity_score(tool_name)
+            )
+            
+            self.tools[tool_name] = tool
+            self.categories[category].append(tool_name)
+            
+            self.logger.debug(f"Processed external tool: {tool_name} from server: {server_name}")
+            
+        except Exception as e:
+            self.logger.warning(f"Error processing external tool {tool_name}: {e}")
+    
+    def _include_autonomous_tools(self) -> None:
+        """Include the autonomous agent tools in the discovery"""
+        try:
+            # Autonomous tools provided by this framework
+            autonomous_tools = [
+                'execute_autonomous_task',
+                'discover_available_tools', 
+                'create_intelligent_workflow',
+                'analyze_task_complexity',
+                'get_personalized_recommendations',
+                'monitor_agent_performance',
+                'configure_agent_preferences',
+                'execute_hybrid_workflow',
+                'execute_tool_chain'
+            ]
+            
+            # Create autonomous server entry
+            server_name = 'autonomous_agent'
+            if server_name not in self.servers:
+                self.servers[server_name] = MCPServer(name=server_name)
+            
+            # Add each autonomous tool
+            for tool_name in autonomous_tools:
+                category = self._categorize_tool(tool_name)
+                
+                tool = MCPTool(
+                    name=tool_name,
+                    server=server_name,
+                    category=category,
+                    description=self._generate_autonomous_tool_description(tool_name),
+                    complexity_score=self._calculate_complexity_score(tool_name)
+                )
+                
+                self.tools[tool_name] = tool
+                self.categories[category].append(tool_name)
+                self.servers[server_name].tools.append(tool_name)
+            
+            self.logger.debug(f"Included {len(autonomous_tools)} autonomous agent tools")
+            
+        except Exception as e:
+            self.logger.warning(f"Error including autonomous tools: {e}")
+    
+    def _generate_autonomous_tool_description(self, tool_name: str) -> str:
+        """Generate descriptions for autonomous agent tools"""
+        descriptions = {
+            'execute_autonomous_task': 'Execute complex tasks with intelligent planning and automation',
+            'discover_available_tools': 'Discover and categorize all available MCP tools',
+            'create_intelligent_workflow': 'Create structured workflows for multi-step processes',
+            'analyze_task_complexity': 'Analyze task requirements and provide recommendations',
+            'get_personalized_recommendations': 'Get ML-powered recommendations based on context',
+            'monitor_agent_performance': 'Monitor real-time agent performance with metrics',
+            'configure_agent_preferences': 'Configure agent behavior and personalization',
+            'execute_hybrid_workflow': 'Execute workflows with both internal and external tools',
+            'execute_tool_chain': 'Execute simple chains of tools in sequence'
+        }
+        
+        return descriptions.get(tool_name, f"Autonomous agent tool: {tool_name}")
+    
+    def _discover_autonomous_tools_fallback(self) -> Dict[str, MCPTool]:
+        """Fallback method to discover only autonomous tools when external discovery fails"""
+        self.logger.warning("Falling back to autonomous tools only due to external discovery failure")
+        
+        # Clear existing data
+        self.servers.clear()
+        self.tools.clear()
+        for cat in self.categories:
+            self.categories[cat].clear()
+        
+        # Include only autonomous tools
+        self._include_autonomous_tools()
+        
+        return self.tools

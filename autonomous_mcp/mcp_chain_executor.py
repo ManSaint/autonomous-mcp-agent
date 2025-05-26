@@ -66,48 +66,48 @@ class RealMCPChainExecutor:
         
     def get_available_tools(self) -> List[str]:
         """
-        Get list of all available MCP tools
+        Get list of all available MCP tools from real external servers
         
-        This function is used by the discovery system to get current tools.
-        It interfaces with the actual MCP tool discovery mechanisms.
+        This function connects to actual MCP servers and discovers their tools.
         """
         try:
-            # Use the actual MCP functions from the current environment
-            # These are imported at the module level in the main application
-            import inspect
-            import sys
+            # Use the real MCP client to get tools from external servers
+            from .real_mcp_client_new import get_mcp_client
+            import asyncio
             
-            # Look for discover_tools and chainable_tools in the current namespace
-            current_frame = inspect.currentframe()
-            while current_frame:
-                frame_globals = current_frame.f_globals
-                if 'discover_tools' in frame_globals and 'chainable_tools' in frame_globals:
-                    discover_tools = frame_globals['discover_tools']
-                    chainable_tools = frame_globals['chainable_tools']
-                    
-                    # Call the functions to get tools
-                    discovered_tools = discover_tools()
-                    chainable_tools_list = chainable_tools()
-                    
-                    # Parse the response - they return strings, we need lists
-                    if isinstance(discovered_tools, str):
-                        discovered_tools = discovered_tools.split(', ')
-                    if isinstance(chainable_tools_list, str):
-                        chainable_tools_list = chainable_tools_list.split(', ')
-                    
-                    # Combine and deduplicate
-                    all_tools = list(set(discovered_tools + chainable_tools_list))
-                    
-                    self.logger.info(f"Discovered {len(all_tools)} available MCP tools")
-                    return all_tools
-                
-                current_frame = current_frame.f_back
+            mcp_client = get_mcp_client()
             
-            # If not found in current frames, try global discovery
-            return self._global_tool_discovery()
+            # Initialize servers if not already connected
+            if not mcp_client.connected_servers:
+                self.logger.info("Connecting to external MCP servers for tool discovery...")
+                connected_count = asyncio.run(mcp_client.initialize_servers())
+                self.logger.info(f"Connected to {connected_count} external MCP servers")
+            
+            # Get all tools from connected servers
+            all_external_tools = mcp_client.get_all_tools()
+            external_tool_names = list(all_external_tools.keys())
+            
+            # Add autonomous tools
+            autonomous_tools = [
+                'execute_autonomous_task',
+                'discover_available_tools', 
+                'create_intelligent_workflow',
+                'analyze_task_complexity',
+                'get_personalized_recommendations',
+                'monitor_agent_performance',
+                'configure_agent_preferences',
+                'execute_hybrid_workflow',
+                'execute_tool_chain'
+            ]
+            
+            # Combine external and autonomous tools
+            all_tools = external_tool_names + autonomous_tools
+            
+            self.logger.info(f"Discovered {len(external_tool_names)} external tools + {len(autonomous_tools)} autonomous tools = {len(all_tools)} total tools")
+            return all_tools
             
         except Exception as e:
-            self.logger.error(f"Error discovering tools: {e}")
+            self.logger.error(f"Error discovering tools from external servers: {e}")
             return self._fallback_tool_discovery()
     
     def _global_tool_discovery(self) -> List[str]:
@@ -380,21 +380,75 @@ class RealMCPChainExecutor:
             return data
     
     def _execute_tool_with_timeout(self, tool_name: str, args: Dict[str, Any], timeout: float) -> Any:
-        """Execute a tool with timeout protection"""
-        # This is a simplified version - in a real implementation,
-        # you would call the actual MCP tool execution mechanism
-        
-        # For now, simulate tool execution
-        # In the real implementation, this would call the actual MCP tool
-        
-        future = self.executor.submit(self._simulate_tool_execution, tool_name, args)
-        
+        """Execute a tool with timeout protection using real MCP servers"""
         try:
-            result = future.result(timeout=timeout)
-            return result
-        except TimeoutError:
-            future.cancel()
-            raise TimeoutError(f"Tool {tool_name} execution timed out")
+            # Check if this is an autonomous tool
+            autonomous_tools = [
+                'execute_autonomous_task', 'discover_available_tools', 'create_intelligent_workflow',
+                'analyze_task_complexity', 'get_personalized_recommendations', 'monitor_agent_performance',
+                'configure_agent_preferences', 'execute_hybrid_workflow', 'execute_tool_chain'
+            ]
+            
+            if tool_name in autonomous_tools:
+                # Execute autonomous tool locally
+                return self._execute_autonomous_tool(tool_name, args)
+            else:
+                # Execute external tool via MCP client
+                return self._execute_external_tool(tool_name, args, timeout)
+                
+        except Exception as e:
+            self.logger.error(f"Error executing tool {tool_name}: {e}")
+            raise
+    
+    def _execute_autonomous_tool(self, tool_name: str, args: Dict[str, Any]) -> Any:
+        """Execute an autonomous agent tool"""
+        # Simulate autonomous tool execution
+        # In a real implementation, this would call the actual autonomous tool functions
+        
+        result = {
+            "tool": tool_name,
+            "executed_by": "autonomous_agent",
+            "args": args,
+            "success": True,
+            "message": f"Autonomous tool {tool_name} executed successfully"
+        }
+        
+        # Add tool-specific mock results
+        if tool_name == 'discover_available_tools':
+            result["discovered_tools"] = self.get_available_tools()
+        elif tool_name == 'analyze_task_complexity':
+            result["complexity_score"] = 3.5
+            result["recommendations"] = ["Break into subtasks", "Use parallel execution"]
+        
+        return result
+    
+    def _execute_external_tool(self, tool_name: str, args: Dict[str, Any], timeout: float) -> Any:
+        """Execute a tool on an external MCP server"""
+        import asyncio
+        from .real_mcp_client_new import get_mcp_client
+        
+        mcp_client = get_mcp_client()
+        
+        # Execute the tool asynchronously
+        async def execute():
+            return await mcp_client.execute_tool(tool_name, args)
+        
+        # Run with timeout
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(asyncio.wait_for(execute(), timeout=timeout))
+            loop.close()
+            
+            if result.get('success'):
+                return result.get('result', result)
+            else:
+                raise Exception(result.get('error', 'Unknown error'))
+                
+        except asyncio.TimeoutError:
+            raise TimeoutError(f"External tool {tool_name} execution timed out")
+        except Exception as e:
+            raise Exception(f"External tool execution failed: {str(e)}")
     
     def _simulate_tool_execution(self, tool_name: str, args: Dict[str, Any]) -> Any:
         """

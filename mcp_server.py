@@ -137,7 +137,7 @@ class AutonomousMCPServer:
             logger.error(f"❌ Server error: {e}")
         finally:
             self.server_running = False
-            logger.info("🛑 Autonomous MCP Server stopped")
+            logger.info("Autonomous MCP Server stopped")
 
 
 async def main():
