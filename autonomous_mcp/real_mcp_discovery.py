@@ -225,11 +225,11 @@ class RealMCPDiscovery:
         """
         return self.discover_all_tools(force_refresh)
     
-    def _process_discovered_tool(self, tool_name: str) -> None:
-        """Process a single discovered tool"""
+    def _process_external_tool(self, tool_name: str, tool_info: Dict[str, Any]) -> None:
+        """Process a tool discovered from an external MCP server"""
         try:
             # Extract server name and tool info
-            server_name = self._extract_server_name(tool_name)
+            server_name = tool_info.get('server', 'unknown')
             category = self._categorize_tool(tool_name)
             
             # Create or update server
@@ -238,20 +238,23 @@ class RealMCPDiscovery:
             
             self.servers[server_name].tools.append(tool_name)
             
-            # Create tool entry
+            # Create tool entry with external server information
             tool = MCPTool(
                 name=tool_name,
                 server=server_name,
                 category=category,
-                description=self._generate_tool_description(tool_name),
+                description=tool_info.get('description', self._generate_tool_description(tool_name)),
+                parameters=tool_info.get('inputSchema', {}),
                 complexity_score=self._calculate_complexity_score(tool_name)
             )
             
             self.tools[tool_name] = tool
             self.categories[category].append(tool_name)
             
+            self.logger.debug(f"Processed external tool: {tool_name} from server: {server_name}")
+            
         except Exception as e:
-            self.logger.warning(f"Error processing tool {tool_name}: {e}")
+            self.logger.warning(f"Error processing external tool {tool_name}: {e}")
     
     def _extract_server_name(self, tool_name: str) -> str:
         """Extract server name from tool name"""
@@ -486,48 +489,6 @@ class RealMCPDiscovery:
             },
             'summary': self.get_discovery_summary()
         }
-
-
-# Global instance for singleton access
-_discovery_instance = None
-
-def get_discovery_instance() -> RealMCPDiscovery:
-    """Get the global discovery instance"""
-    global _discovery_instance
-    if _discovery_instance is None:
-        _discovery_instance = RealMCPDiscovery()
-    return _discovery_instance
-    
-    def _process_external_tool(self, tool_name: str, tool_info: Dict[str, Any]) -> None:
-        """Process a tool discovered from an external MCP server"""
-        try:
-            # Extract server name and tool info
-            server_name = tool_info.get('server', 'unknown')
-            category = self._categorize_tool(tool_name)
-            
-            # Create or update server
-            if server_name not in self.servers:
-                self.servers[server_name] = MCPServer(name=server_name)
-            
-            self.servers[server_name].tools.append(tool_name)
-            
-            # Create tool entry with external server information
-            tool = MCPTool(
-                name=tool_name,
-                server=server_name,
-                category=category,
-                description=tool_info.get('description', self._generate_tool_description(tool_name)),
-                parameters=tool_info.get('inputSchema', {}),
-                complexity_score=self._calculate_complexity_score(tool_name)
-            )
-            
-            self.tools[tool_name] = tool
-            self.categories[category].append(tool_name)
-            
-            self.logger.debug(f"Processed external tool: {tool_name} from server: {server_name}")
-            
-        except Exception as e:
-            self.logger.warning(f"Error processing external tool {tool_name}: {e}")
     
     def _include_autonomous_tools(self) -> None:
         """Include the autonomous agent tools in the discovery"""
@@ -601,3 +562,14 @@ def get_discovery_instance() -> RealMCPDiscovery:
         self._include_autonomous_tools()
         
         return self.tools
+
+
+# Global instance for singleton access
+_discovery_instance = None
+
+def get_discovery_instance() -> RealMCPDiscovery:
+    """Get the global discovery instance"""
+    global _discovery_instance
+    if _discovery_instance is None:
+        _discovery_instance = RealMCPDiscovery()
+    return _discovery_instance
