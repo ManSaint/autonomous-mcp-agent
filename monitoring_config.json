@@ -1,0 +1,41 @@
+{
+  "python_process_monitoring": {
+    "enabled": true,
+    "max_processes": 50,
+    "check_interval_seconds": 30,
+    "auto_cleanup": true,
+    "emergency_threshold_multiplier": 2.0,
+    "memory_warning_mb": 8000,
+    "memory_critical_mb": 12000,
+    "process_age_warning_hours": 1.0
+  },
+  "monitoring_system": {
+    "log_level": "INFO",
+    "log_file": "logs/autonomous_mcp_monitoring.log",
+    "max_metrics_history": 10000,
+    "max_alerts_history": 1000,
+    "metrics_retention_days": 30,
+    "enable_structured_logging": true
+  },
+  "alert_settings": {
+    "enable_email_alerts": false,
+    "enable_desktop_notifications": true,
+    "critical_alert_cooldown_minutes": 10,
+    "warning_alert_cooldown_minutes": 30
+  },
+  "cleanup_settings": {
+    "preserve_patterns": [
+      "autonomous-mcp-agent",
+      "monitoring",
+      "claude"
+    ],
+    "selective_cleanup_memory_threshold_mb": 100,
+    "selective_cleanup_age_threshold_hours": 1.0
+  },
+  "dashboard": {
+    "update_interval_seconds": 15,
+    "export_metrics_interval_minutes": 60,
+    "enable_web_dashboard": false,
+    "dashboard_port": 8080
+  }
+}

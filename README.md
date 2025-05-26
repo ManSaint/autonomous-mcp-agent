@@ -31,6 +31,7 @@ The **Autonomous MCP Agent** is a cutting-edge framework that brings intelligent
 - **🔍 Real-time Tool Discovery** - Dynamic integration with MCP tools via real protocol
 - **⚡ Intelligent Workflow Generation** - AI-powered task planning and optimization
 - **📊 Comprehensive Analytics** - Performance monitoring and complexity analysis
+- **🛡️ Python Process Monitoring** - Automatic detection and prevention of process explosions
 - **🎯 Personalized Recommendations** - ML-driven suggestions based on user preferences
 - **🛡️ Robust Error Recovery** - Graceful handling of failures and edge cases
 - **🔗 Seamless Integration** - Natural language interface through Claude Desktop
@@ -95,6 +96,47 @@ The agent automatically creates optimal workflows by:
 - **Dynamic Tool Discovery**: Real-time tool availability detection
 - **Protocol Compliance**: Full JSON-RPC 2.0 MCP implementation
 - **Performance Optimization**: Sub-second tool execution
+
+## 🛡️ Python Process Monitoring
+
+The framework includes **enterprise-grade Python process monitoring** to prevent system resource exhaustion:
+
+### **Automatic Protection Features**
+- **🔍 Real-time Detection** - Monitors Python processes every 30 seconds
+- **⚡ Smart Cleanup** - Automatically terminates excessive processes
+- **🚨 Alert System** - Multi-level warnings and notifications
+- **📊 Memory Tracking** - Monitors Python memory usage patterns
+- **🛡️ Self-Protection** - Preserves critical system processes
+
+### **Quick Start with Monitoring**
+```bash
+# Start with full monitoring protection
+python autonomous_agent_with_monitoring.py
+
+# Test the monitoring integration
+python simple_test.py
+```
+
+### **Configuration**
+Customize monitoring settings in `monitoring_config.json`:
+```json
+{
+  "python_process_monitoring": {
+    "enabled": true,
+    "max_processes": 50,
+    "check_interval_seconds": 30,
+    "auto_cleanup": true
+  }
+}
+```
+
+### **Alert Levels**
+- **INFO** - Normal operation (< 40 processes)
+- **WARNING** - High usage (40+ processes or 8GB+ memory)
+- **CRITICAL** - Excessive usage (50+ processes or 12GB+ memory)  
+- **EMERGENCY** - System protection (100+ processes)
+
+For detailed monitoring documentation, see [PYTHON_MONITORING_INTEGRATION.md](PYTHON_MONITORING_INTEGRATION.md).
 
 ## 🛠️ Advanced Features
 

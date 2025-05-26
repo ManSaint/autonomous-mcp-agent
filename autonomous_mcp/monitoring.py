@@ -1084,3 +1084,431 @@ __all__ = [
     'create_monitoring_system',
     'setup_comprehensive_monitoring'
 ]
+"""
+Enhanced Python Process Monitoring Integration
+Extends the existing MonitoringSystem with automatic Python process detection and management
+"""
+
+import asyncio
+import subprocess
+from typing import List, Dict, Tuple
+import psutil
+from datetime import datetime
+
+class PythonProcessMonitor:
+    """
+    Python Process Monitor Integration for Autonomous MCP Agent
+    Automatically detects and manages excessive Python processes
+    """
+    
+    def __init__(self, monitoring_system, max_processes: int = 50, 
+                 check_interval: int = 30, auto_cleanup: bool = True):
+        """
+        Initialize Python process monitoring integration
+        
+        Args:
+            monitoring_system: The main MonitoringSystem instance
+            max_processes: Maximum allowed Python processes before intervention
+            check_interval: Seconds between checks
+            auto_cleanup: Automatically terminate excessive processes
+        """
+        self.monitoring = monitoring_system
+        self.max_processes = max_processes
+        self.check_interval = check_interval
+        self.auto_cleanup = auto_cleanup
+        self.last_check = None
+        self.monitoring_task = None
+        self.is_monitoring = False
+        
+        # Add Python process specific alert thresholds
+        self._setup_python_process_thresholds()
+        
+        # Update component health
+        self.monitoring.update_component_health(
+            "python_process_monitor", 
+            ComponentHealth.HEALTHY,
+            f"Monitoring Python processes (max: {max_processes})"
+        )
+        
+        self.monitoring.logger.info(
+            f"Python Process Monitor initialized (max: {max_processes}, auto_cleanup: {auto_cleanup})",
+            extra={'component': 'python_process_monitor'}
+        )
+    
+    def _setup_python_process_thresholds(self):
+        """Setup alert thresholds for Python process monitoring"""
+        from .monitoring import AlertThreshold, AlertSeverity
+        
+        thresholds = [
+            AlertThreshold("python_process_count", ">", self.max_processes * 0.8, 
+                          AlertSeverity.WARNING, 60),
+            AlertThreshold("python_process_count", ">", self.max_processes, 
+                          AlertSeverity.CRITICAL, 30),
+            AlertThreshold("python_memory_usage_mb", ">", 8000, 
+                          AlertSeverity.WARNING, 120),
+            AlertThreshold("python_memory_usage_mb", ">", 12000, 
+                          AlertSeverity.CRITICAL, 60)
+        ]
+        
+        for threshold in thresholds:
+            self.monitoring.add_alert_threshold(threshold)
+    
+    def get_python_processes(self) -> List[psutil.Process]:
+        """Get all running Python processes"""
+        python_processes = []
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time', 'memory_info']):
+            try:
+                if proc.info['name'] and 'python' in proc.info['name'].lower():
+                    python_processes.append(proc)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        return python_processes
+    
+    def analyze_python_processes(self, processes: List[psutil.Process]) -> Dict[str, any]:
+        """Analyze Python processes for issues"""
+        analysis = {
+            'total_count': len(processes),
+            'total_memory_mb': 0,
+            'high_memory_processes': [],
+            'old_processes': [],
+            'suspicious_processes': [],
+            'mcp_related_processes': []
+        }
+        
+        current_time = time.time()
+        for proc in processes:
+            try:
+                # Memory analysis
+                memory_mb = proc.info['memory_info'].rss / 1024 / 1024
+                analysis['total_memory_mb'] += memory_mb
+                
+                if memory_mb > 100:  # > 100MB per process
+                    analysis['high_memory_processes'].append({
+                        'pid': proc.info['pid'],
+                        'memory_mb': memory_mb,
+                        'cmdline': proc.info['cmdline']
+                    })
+                
+                # Age analysis  
+                process_age = current_time - proc.info['create_time']
+                if process_age > 3600:  # > 1 hour
+                    analysis['old_processes'].append({
+                        'pid': proc.info['pid'],
+                        'age_hours': process_age / 3600,
+                        'cmdline': proc.info['cmdline']
+                    })
+                
+                # Check for suspicious patterns
+                cmdline = ' '.join(proc.info['cmdline'] or [])
+                if any(keyword in cmdline.lower() for keyword in ['infinite', 'loop', 'while true']):
+                    analysis['suspicious_processes'].append({
+                        'pid': proc.info['pid'],
+                        'cmdline': cmdline,
+                        'reason': 'suspicious_keywords'
+                    })
+                
+                # Check for MCP-related processes
+                if any(keyword in cmdline.lower() for keyword in ['mcp', 'claude', 'autonomous-mcp']):
+                    analysis['mcp_related_processes'].append({
+                        'pid': proc.info['pid'],
+                        'cmdline': cmdline,
+                        'memory_mb': memory_mb
+                    })
+                    
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        
+        return analysis
+    
+    def emergency_cleanup_python_processes(self) -> int:
+        """Emergency cleanup of all Python processes"""
+        try:
+            # Get count before cleanup
+            initial_count = len(self.get_python_processes())
+            
+            self.monitoring.logger.warning(
+                f"EMERGENCY: Terminating all Python processes (found {initial_count})",
+                extra={'component': 'python_process_monitor', 'action': 'emergency_cleanup'}
+            )
+            
+            # Use system commands for forceful termination
+            if os.name == 'nt':  # Windows
+                subprocess.run(["taskkill", "/f", "/im", "python.exe"], 
+                             check=False, capture_output=True)
+                subprocess.run(["taskkill", "/f", "/im", "pythonw.exe"], 
+                             check=False, capture_output=True)
+            else:  # Unix-like
+                subprocess.run(["pkill", "-f", "python"], 
+                             check=False, capture_output=True)
+            
+            # Wait and verify
+            time.sleep(2)
+            final_count = len(self.get_python_processes())
+            killed_count = initial_count - final_count
+            
+            # Create alert for emergency cleanup
+            self.monitoring.create_alert(
+                severity=AlertSeverity.EMERGENCY,
+                component="python_process_monitor",
+                message=f"Emergency Python process cleanup executed: {killed_count} processes terminated",
+                metadata={
+                    'initial_count': initial_count,
+                    'final_count': final_count,
+                    'killed_count': killed_count
+                }
+            )
+            
+            # Update metrics
+            self.monitoring.increment_counter("emergency_cleanups", 
+                                            tags={'type': 'python_processes'})
+            self.monitoring.set_gauge("python_processes_killed", killed_count)
+            
+            return killed_count
+            
+        except Exception as e:
+            self.monitoring.logger.error(
+                f"Emergency cleanup failed: {e}",
+                extra={'component': 'python_process_monitor', 'error': str(e)}
+            )
+            return 0
+    
+    def selective_cleanup_python_processes(self, processes: List[psutil.Process]) -> int:
+        """Selectively terminate problematic Python processes"""
+        if len(processes) <= self.max_processes:
+            return 0
+        
+        # Sort by memory usage (highest first) and age (oldest first)
+        processes_to_kill = []
+        for proc in processes:
+            try:
+                memory_mb = proc.info['memory_info'].rss / 1024 / 1024
+                age = time.time() - proc.info['create_time']
+                processes_to_kill.append((proc, memory_mb, age))
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        
+        # Sort by memory usage descending, then by age descending
+        processes_to_kill.sort(key=lambda x: (x[1], x[2]), reverse=True)
+        
+        killed_count = 0
+        excess_count = len(processes) - self.max_processes
+        
+        self.monitoring.logger.warning(
+            f"Selective cleanup: terminating {excess_count} Python processes",
+            extra={'component': 'python_process_monitor'}
+        )
+        
+        for proc, memory_mb, age in processes_to_kill[:excess_count]:
+            try:
+                cmdline = ' '.join(proc.info['cmdline'] or [])
+                
+                # Skip our own process and critical system processes
+                if any(skip in cmdline.lower() for skip in ['autonomous-mcp-agent', 'monitoring']):
+                    continue
+                
+                self.monitoring.logger.warning(
+                    f"Terminating PID {proc.info['pid']} (Memory: {memory_mb:.1f}MB, Age: {age/60:.1f}min)",
+                    extra={'component': 'python_process_monitor', 'cmdline': cmdline}
+                )
+                
+                proc.terminate()
+                killed_count += 1
+                time.sleep(0.1)  # Small delay between terminations
+                
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                self.monitoring.logger.error(
+                    f"Failed to terminate process {proc.info['pid']}: {e}",
+                    extra={'component': 'python_process_monitor'}
+                )
+        
+        self.monitoring.increment_counter("selective_cleanups", 
+                                        tags={'processes_killed': str(killed_count)})
+        return killed_count
+    
+    def check_python_processes(self) -> Dict[str, any]:
+        """Perform a single check of Python processes"""
+        try:
+            # Get all Python processes
+            python_processes = self.get_python_processes()
+            analysis = self.analyze_python_processes(python_processes)
+            
+            # Record metrics
+            self.monitoring.set_gauge("python_process_count", analysis['total_count'])
+            self.monitoring.set_gauge("python_memory_usage_mb", analysis['total_memory_mb'])
+            
+            # Log current status
+            self.monitoring.logger.info(
+                f"Python process check: {analysis['total_count']} processes, {analysis['total_memory_mb']:.1f}MB",
+                extra={
+                    'component': 'python_process_monitor',
+                    'process_count': analysis['total_count'],
+                    'memory_mb': analysis['total_memory_mb'],
+                    'high_memory_count': len(analysis['high_memory_processes']),
+                    'old_process_count': len(analysis['old_processes']),
+                    'mcp_process_count': len(analysis['mcp_related_processes'])
+                }
+            )
+            
+            # Check for issues and take action
+            if analysis['total_count'] > self.max_processes:
+                self.monitoring.logger.error(
+                    f"EXCESSIVE Python processes detected: {analysis['total_count']} > {self.max_processes}",
+                    extra={'component': 'python_process_monitor'}
+                )
+                
+                if self.auto_cleanup:
+                    if analysis['total_count'] > self.max_processes * 2:
+                        # Emergency cleanup if more than 2x limit
+                        killed = self.emergency_cleanup_python_processes()
+                        analysis['emergency_cleanup'] = True
+                        analysis['processes_killed'] = killed
+                    else:
+                        # Selective cleanup
+                        killed = self.selective_cleanup_python_processes(python_processes)
+                        analysis['selective_cleanup'] = True
+                        analysis['processes_killed'] = killed
+                else:
+                    # Just alert without cleanup
+                    self.monitoring.create_alert(
+                        severity=AlertSeverity.CRITICAL,
+                        component="python_process_monitor",
+                        message=f"Excessive Python processes: {analysis['total_count']} > {self.max_processes}",
+                        metadata=analysis
+                    )
+            
+            # Alert for high memory usage
+            if analysis['total_memory_mb'] > 8000:  # 8GB threshold
+                self.monitoring.create_alert(
+                    severity=AlertSeverity.WARNING if analysis['total_memory_mb'] < 12000 else AlertSeverity.CRITICAL,
+                    component="python_process_monitor",
+                    message=f"High Python memory usage: {analysis['total_memory_mb']:.1f}MB",
+                    metadata=analysis
+                )
+            
+            # Update component health
+            if analysis['total_count'] > self.max_processes:
+                health = ComponentHealth.UNHEALTHY
+                message = f"Excessive processes: {analysis['total_count']}"
+            elif analysis['total_count'] > self.max_processes * 0.8:
+                health = ComponentHealth.DEGRADED
+                message = f"High process count: {analysis['total_count']}"
+            else:
+                health = ComponentHealth.HEALTHY
+                message = f"Normal: {analysis['total_count']} processes"
+            
+            self.monitoring.update_component_health(
+                "python_process_monitor", health, message,
+                {'process_count': analysis['total_count'], 'memory_mb': analysis['total_memory_mb']}
+            )
+            
+            self.last_check = datetime.now()
+            return analysis
+            
+        except Exception as e:
+            self.monitoring.logger.error(
+                f"Python process check failed: {e}",
+                extra={'component': 'python_process_monitor', 'error': str(e)}
+            )
+            
+            self.monitoring.update_component_health(
+                "python_process_monitor", ComponentHealth.UNHEALTHY, f"Check failed: {e}"
+            )
+            
+            return {'error': str(e), 'total_count': 0}
+    
+    async def start_monitoring(self):
+        """Start continuous Python process monitoring"""
+        if self.is_monitoring:
+            self.monitoring.logger.warning(
+                "Python process monitoring already running",
+                extra={'component': 'python_process_monitor'}
+            )
+            return
+        
+        self.is_monitoring = True
+        self.monitoring.logger.info(
+            f"Starting Python process monitoring (interval: {self.check_interval}s)",
+            extra={'component': 'python_process_monitor'}
+        )
+        
+        try:
+            while self.is_monitoring:
+                self.check_python_processes()
+                await asyncio.sleep(self.check_interval)
+        except asyncio.CancelledError:
+            self.monitoring.logger.info(
+                "Python process monitoring cancelled",
+                extra={'component': 'python_process_monitor'}
+            )
+        except Exception as e:
+            self.monitoring.logger.error(
+                f"Python process monitoring error: {e}",
+                extra={'component': 'python_process_monitor', 'error': str(e)}
+            )
+        finally:
+            self.is_monitoring = False
+    
+    def stop_monitoring(self):
+        """Stop continuous Python process monitoring"""
+        if self.monitoring_task and not self.monitoring_task.done():
+            self.monitoring_task.cancel()
+        
+        self.is_monitoring = False
+        self.monitoring.logger.info(
+            "Python process monitoring stopped",
+            extra={'component': 'python_process_monitor'}
+        )
+    
+    def get_status(self) -> Dict[str, any]:
+        """Get current Python process monitoring status"""
+        return {
+            'is_monitoring': self.is_monitoring,
+            'max_processes': self.max_processes,
+            'check_interval': self.check_interval,
+            'auto_cleanup': self.auto_cleanup,
+            'last_check': self.last_check.isoformat() if self.last_check else None,
+            'current_analysis': self.check_python_processes()
+        }
+
+
+# Enhanced MonitoringSystem with Python Process Integration
+def enhance_monitoring_with_python_process_monitor(monitoring_system, 
+                                                 max_processes: int = 50,
+                                                 check_interval: int = 30,
+                                                 auto_cleanup: bool = True,
+                                                 start_monitoring: bool = True) -> PythonProcessMonitor:
+    """
+    Enhance existing monitoring system with Python process monitoring
+    
+    Args:
+        monitoring_system: Existing MonitoringSystem instance
+        max_processes: Maximum allowed Python processes
+        check_interval: Seconds between checks
+        auto_cleanup: Automatically clean up excessive processes
+        start_monitoring: Start monitoring immediately
+    
+    Returns:
+        PythonProcessMonitor instance
+    """
+    python_monitor = PythonProcessMonitor(
+        monitoring_system=monitoring_system,
+        max_processes=max_processes,
+        check_interval=check_interval,
+        auto_cleanup=auto_cleanup
+    )
+    
+    # Perform initial check
+    python_monitor.check_python_processes()
+    
+    # Start monitoring if requested
+    if start_monitoring:
+        python_monitor.monitoring_task = asyncio.create_task(python_monitor.start_monitoring())
+    
+    return python_monitor
+
+
+# Add to monitoring system exports
+__all__.extend([
+    'PythonProcessMonitor',
+    'enhance_monitoring_with_python_process_monitor'
+])
