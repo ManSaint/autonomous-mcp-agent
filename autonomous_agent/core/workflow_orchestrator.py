@@ -5,7 +5,12 @@ import asyncio
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from .tool_chainer import real_tool_chainer, ToolChainResult
+try:
+    from .tool_chainer import real_tool_chainer, ToolChainResult
+except ImportError:
+    import sys, os
+    sys.path.append(os.path.dirname(__file__))
+    from tool_chainer import real_tool_chainer, ToolChainResult
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,7 +49,7 @@ class WorkflowOrchestrator:
                 {'tool': 'artifacts', 'parameters': {'command': 'create', 'content': 'Results', 'use_previous_output': True}}
             ]
         }
-    
+
     async def execute_workflow(self, template_name: str, parameters: Dict[str, Any]) -> ToolChainResult:
         """Execute a workflow from template"""
         if template_name not in self.workflow_templates:
@@ -69,6 +74,37 @@ class WorkflowOrchestrator:
         
         logger.info(f"Workflow {template_name} completed")
         return result
+    
+    async def execute_custom_workflow(self, template: Dict[str, Any], parameters: Dict[str, Any]) -> ToolChainResult:
+        """Execute a custom workflow template"""
+        
+        # Substitute parameters in template steps
+        steps = []
+        for step in template['steps']:
+            new_step = {'tool': step['tool'], 'parameters': {}}
+            for key, value in step['parameters'].items():
+                if isinstance(value, str) and '{' in value:
+                    new_step['parameters'][key] = value.format(**parameters)
+                else:
+                    new_step['parameters'][key] = value
+            steps.append(new_step)
+        
+        # Create and execute chain
+        workflow_name = template.get('name', 'Custom Workflow')
+        chain_id = real_tool_chainer.create_tool_chain(steps, workflow_name)
+        result = await real_tool_chainer.execute_chain(chain_id)
+        
+        logger.info(f"Custom workflow {workflow_name} completed")
+        return result
+    
+    def add_workflow_template(self, name: str, template: Dict[str, Any]):
+        """Add a new workflow template"""
+        self.workflow_templates[name] = template
+        logger.info(f"Added workflow template: {name}")
+    
+    def get_available_workflows(self) -> List[str]:
+        """Get list of available workflow templates"""
+        return list(self.workflow_templates.keys())
 
 
 # Create singleton instance

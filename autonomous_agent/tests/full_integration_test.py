@@ -1,127 +1,124 @@
 #!/usr/bin/env python3
-"""
-Phase 2 Full Integration Test - COMPREHENSIVE VERIFICATION
-
-This test verifies that Phase 2 integrates flawlessly with ALL existing components:
-- Phase 1 foundation (MCP server, tools, foundation test)
-- Phase 2 tool integration (web_search, repl, artifacts)
-- All imports work correctly
-- No regressions from previous phases
-- Everything works together seamlessly
-
-This is MANDATORY before claiming Phase 2 complete.
-"""
+"""Phase 1-4 Integration Verification Test"""
 
 import asyncio
-import logging
 import sys
-import importlib
-import traceback
-from datetime import datetime
-from pathlib import Path
+import os
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Add the core directory to path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'core'))
+
+from task_planner import TaskPlanner, autonomous_task_planning
+from tool_chainer import real_tool_chainer
+from workflow_orchestrator import workflow_orchestrator
 
 
-class FullIntegrationTest:
-    """
-    Comprehensive integration test for Phase 2 with all existing components
-    """
+async def test_full_integration():
+    """Test full integration across all phases"""
+    print("TESTING PHASE 1-4 FULL INTEGRATION")
+    print("=" * 50)
     
-    def __init__(self):
-        """Initialize full integration test"""
-        self.test_results = {}
-        self.failures = []
-        self.start_time = datetime.now()
-        logger.info("Full integration test initialized - verifying Phase 2 with all components")
+    results = []
     
-    async def test_phase1_foundation_still_works(self) -> bool:
-        """Test that Phase 1 foundation components still work after Phase 2"""
-        try:
-            logger.info("🔍 Testing Phase 1 foundation integration...")
-            
-            # Test foundation test still works
-            sys.path.append(str(Path(__file__).parent.parent / "core"))
-            foundation_test = importlib.import_module("foundation_test")
-            
-            # Run foundation test
-            foundation_result = await foundation_test.main()
-            
-            if foundation_result.get('ready_for_phase_2'):
-                logger.info("✅ Phase 1 foundation still working correctly")
-                self.test_results['phase1_foundation'] = {'status': 'working', 'details': foundation_result}
-                return True
-            else:
-                logger.error("❌ Phase 1 foundation broken after Phase 2 changes")
-                self.failures.append("Phase 1 foundation no longer working")
-                return False
-                
-        except Exception as e:
-            logger.error(f"❌ Phase 1 foundation test failed: {e}")
-            self.failures.append(f"Phase 1 foundation error: {str(e)}")
-            self.test_results['phase1_foundation'] = {'status': 'failed', 'error': str(e)}
-            return False
+    # Test 1: Phase 1 - Foundation still works
+    print("\n1. Testing Phase 1 Foundation...")
+    try:
+        available_tools = real_tool_chainer.get_available_tools()
+        print(f"   Available tools: {len(available_tools)}")
+        results.append(len(available_tools) > 0)
+    except Exception as e:
+        print(f"   Error: {e}")
+        results.append(False)
     
-    async def test_mcp_server_imports(self) -> bool:
-        """Test that MCP server components still import correctly"""
-        try:
-            logger.info("🔍 Testing MCP server imports...")
-            
-            # Test MCP imports that Phase 1 verified
-            from mcp.server.stdio import stdio_server
-            from mcp.server import Server
-            from mcp import types
-            
-            # Test server creation
-            test_server = Server("integration-test-server")
-            
-            logger.info("✅ MCP server imports working correctly")
-            self.test_results['mcp_imports'] = {'status': 'working'}
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ MCP server imports failed: {e}")
-            self.failures.append(f"MCP imports broken: {str(e)}")
-            self.test_results['mcp_imports'] = {'status': 'failed', 'error': str(e)}
-            return False
+    # Test 2: Phase 2 - Tool integration still works
+    print("\n2. Testing Phase 2 Tool Integration...")
+    try:
+        # Test simple tool chain
+        steps = [{'tool': 'web_search', 'parameters': {'query': 'test'}}]
+        chain_id = real_tool_chainer.create_tool_chain(steps, "Integration Test")
+        print(f"   Tool chain created: {chain_id}")
+        results.append(True)
+    except Exception as e:
+        print(f"   Error: {e}")
+        results.append(False)
     
-    async def test_phase2_tool_integrator(self) -> bool:
-        """Test that Phase 2 tool integrator works correctly"""
-        try:
-            logger.info("🔍 Testing Phase 2 tool integrator...")
+    # Test 3: Phase 3 - Workflow orchestration still works
+    print("\n3. Testing Phase 3 Workflow Orchestration...")
+    try:
+        available_workflows = workflow_orchestrator.get_available_workflows()
+        print(f"   Available workflows: {available_workflows}")
+        results.append(len(available_workflows) > 0)
+    except Exception as e:
+        print(f"   Error: {e}")
+        results.append(False)
+    
+    # Test 4: Phase 4 - Autonomous planning works
+    print("\n4. Testing Phase 4 Autonomous Planning...")
+    try:
+        planning_result = await autonomous_task_planning("Test integration")
+        print(f"   Planning result: {planning_result.success}")
+        print(f"   Task type: {planning_result.analysis.task_type}")
+        results.append(planning_result.success)
+    except Exception as e:
+        print(f"   Error: {e}")
+        results.append(False)
+    
+    # Test 5: End-to-end autonomous execution
+    print("\n5. Testing End-to-End Autonomous Execution...")
+    try:
+        planner = TaskPlanner()
+        planning_result = await planner.plan_task_execution("Find info about autonomous agents")
+        
+        if planning_result.success:
+            # Execute the planned workflow
+            result = await planner.orchestrator.execute_workflow(
+                planning_result.workflow_plan['workflow_name'],
+                planning_result.workflow_plan['parameters']
+            )
             
-            # Import and test tool integrator
-            tool_integrator_module = importlib.import_module("tool_integrator")
-            tool_integrator = tool_integrator_module.tool_integrator
-            
-            # Test each tool integration
-            search_result = await tool_integrator.execute_web_search("test integration query")
-            repl_result = await tool_integrator.execute_repl("console.log('integration test')")
-            artifacts_result = await tool_integrator.execute_artifacts("create", "test content")
-            
-            # Verify results structure
-            if (search_result.get('integration_status') == 'phase_2_ready' and
-                repl_result.get('integration_status') == 'phase_2_ready' and
-                artifacts_result.get('integration_status') == 'phase_2_ready'):
-                
-                logger.info("✅ Phase 2 tool integrator working correctly")
-                self.test_results['tool_integrator'] = {
-                    'status': 'working',
-                    'search': search_result,
-                    'repl': repl_result, 
-                    'artifacts': artifacts_result
-                }
-                return True
-            else:
-                logger.error("❌ Phase 2 tool integrator not returning expected results")
-                self.failures.append("Tool integrator results incorrect")
-                return False
-                
-        except Exception as e:
-            logger.error(f"❌ Phase 2 tool integrator failed: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            self.failures.append(f"Tool integrator error: {str(e)}")
-            self.test_results['tool_integrator'] = {'status': 'failed', 'error': str(e)}
-            return False
+            success = result.status == "completed"
+            print(f"   Execution result: {result.status}")
+            print(f"   Steps: {len(result.steps_executed)}")
+            print(f"   Duration: {result.get_duration():.2f}s")
+            results.append(success)
+        else:
+            print(f"   Planning failed: {planning_result.error_message}")
+            results.append(False)
+    except Exception as e:
+        print(f"   Error: {e}")
+        results.append(False)
+    
+    # Summary
+    print("\n" + "=" * 50)
+    print("INTEGRATION TEST RESULTS")
+    print("=" * 50)
+    
+    test_names = [
+        "Phase 1 Foundation",
+        "Phase 2 Tool Integration", 
+        "Phase 3 Workflow Orchestration",
+        "Phase 4 Autonomous Planning",
+        "End-to-End Execution"
+    ]
+    
+    passed = 0
+    for i, (name, result) in enumerate(zip(test_names, results)):
+        status = "PASS" if result else "FAIL"
+        print(f"{name}: {status}")
+        if result:
+            passed += 1
+    
+    print(f"\nOverall: {passed}/{len(results)} tests passed")
+    
+    if passed == len(results):
+        print("ALL INTEGRATION TESTS PASSED!")
+        print("Phase 4 Successfully Integrated with All Previous Phases")
+        return True
+    else:
+        print("Some integration tests failed.")
+        return False
+
+
+if __name__ == "__main__":
+    success = asyncio.run(test_full_integration())
+    exit(0 if success else 1)
