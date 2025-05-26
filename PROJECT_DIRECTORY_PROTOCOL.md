@@ -229,6 +229,13 @@ Required updates after each phase:
 - [ ] **"What breaks when I try edge cases?"**
 - [ ] **"Am I being completely honest about limitations?"**
 
+#### 6. MANDATORY GIT SYNC REQUIREMENT:
+**After every completed phase:**
+- [ ] **Git add all changes**: `git add .`
+- [ ] **Git commit with detailed message**: `git commit -m "Phase X COMPLETED: [details]"`
+- [ ] **Git push to sync changes**: `git push`
+- [ ] **Verify sync completed successfully**
+
 ### 🚨 PHASE COMPLETION FAILURE PROTOCOL:
 
 **If any component doesn't work as claimed:**
@@ -247,6 +254,7 @@ Required updates after each phase:
 - [ ] **No broken imports or dependencies**
 - [ ] **Error handling works throughout the system**
 - [ ] **Performance hasn't degraded significantly**
+- [ ] **Git changes synced successfully**
 
 ### 📊 PHASE PROGRESS TRACKING:
 
@@ -256,6 +264,7 @@ Required updates after each phase:
 - Working components list
 - Known limitations list
 - Next phase readiness checklist
+- Git sync status
 
 ---
 **NEVER FORGET**: 
