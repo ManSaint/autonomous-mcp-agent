@@ -271,11 +271,13 @@ class RealToolChainer:
 # Create singleton instance
 real_tool_chainer = RealToolChainer()
 
-    def get_available_tools(self) -> List[str]:
-        """Get list of available tools"""
-        return ['web_search', 'repl', 'artifacts', 'sequentialthinking']
-    
-    def get_tool_info(self, tool_name: str) -> Dict[str, Any]:
+
+def get_available_tools() -> List[str]:
+    """Get list of available tools"""
+    return ['web_search', 'repl', 'artifacts', 'sequentialthinking']
+
+
+def get_tool_info(tool_name: str) -> Dict[str, Any]:
         """Get information about a specific tool"""
         tool_info = {
             'web_search': {
